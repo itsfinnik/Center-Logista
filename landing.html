@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ИнвестЛогистик - Центр-Инвест</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .bank-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .bank-logo img {
+            height: 100px;
+            max-width: 600px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+        }
+
+        .bank-logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .icon-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .icon-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .icon-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 40px;
+            max-width: 900px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-button {
+            background: rgba(255,255,255,0.95);
+            color: #11998e;
+            font-size: 24px;
+            font-weight: 700;
+            padding: 20px 60px;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            animation: fadeInUp 1s ease-out;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .hero-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+            background: white;
+        }
+
+        .hero-description {
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 800px;
+            margin-top: 50px;
+            opacity: 0.95;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+            margin: 40px 0;
+        }
+
+        .footer {
+            background: rgba(0,0,0,0.1);
+            padding: 30px 60px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-info {
+            text-align: left;
+        }
+
+        .footer-info p {
+            margin: 5px 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .footer-license {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .footer-phone {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-phone-note {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px 30px;
+            }
+
+            .hero-title {
+                font-size: 32px;
+            }
+
+            .hero-button {
+                font-size: 20px;
+                padding: 16px 40px;
+            }
+
+            .hero-description {
+                font-size: 16px;
+            }
+
+            .footer {
+                padding: 25px 30px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-info {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="bank-logo">
+            <img src="/logo.png" alt="Центр-Инвест">
+        </div>
+        <div class="header-icons">
+            <div class="icon-btn" title="Уведомления">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                </svg>
+            </div>
+            <div class="icon-btn" title="Поддержка">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+                </svg>
+            </div>
+            <div class="icon-btn" title="Профиль" onclick="window.location.href='/app.html'">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h1 class="hero-title">
+            ИнвестЛогистик - Оптимальные маршруты для успешных бизнес-встреч.
+        </h1>
+
+        <a href="/app.html" class="hero-button">
+            Составить маршрут
+        </a>
+
+        <div class="divider"></div>
+
+        <p class="hero-description">
+            Позвольте вашим сотрудникам быстро и удобно создавать оптимальные маршруты для бизнес-встреч. 
+            Экономьте время, снижайте затраты на транспорт и повышайте эффективность работы с клиентами.
+        </p>
+    </div>
+
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <p class="footer-license">Банк "Центр-инвест" (ПАО)</p>
+                <p>Лицензия Банка России № 2225 от 26.03.2015</p>
+                <p>344000, г. Ростов-на-Дону, пр. Соколова, 62</p>
+            </div>
+            <div>
+                <div class="footer-phone">
+                    8 800 200 99 29
+                </div>
+                <p class="footer-phone-note">Звонок по России бесплатный</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

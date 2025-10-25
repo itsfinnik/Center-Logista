@@ -1,0 +1,99 @@
+2025-10-26 00:50:03 - route_optimizer - INFO - [REQUEST] POST /api/upload-csv
+2025-10-26 00:50:03 - route_optimizer - INFO - === НАЧАЛО ЗАГРУЗКИ CSV ===
+2025-10-26 00:50:03 - route_optimizer - INFO - Request headers: {'host': 'localhost:8000', 'user-agent': 'curl/8.7.1', 'accept': '*/*', 'content-length': '909', 'content-type': 'multipart/form-data; boundary=------------------------PTSvYq1UbOsM6V6jjA0lEt'}
+2025-10-26 00:50:03 - route_optimizer - INFO - File parameter: UploadFile(filename='example_simple.csv', size=687, headers=Headers({'content-disposition': 'form-data; name="file"; filename="example_simple.csv"', 'content-type': 'application/octet-stream'}))
+2025-10-26 00:50:03 - route_optimizer - INFO - Получен файл: example_simple.csv
+2025-10-26 00:50:03 - route_optimizer - INFO - Content type: application/octet-stream
+2025-10-26 00:50:03 - route_optimizer - INFO - Размер файла: 687 байт
+2025-10-26 00:50:03 - route_optimizer - INFO - CSV колонки: ['Адрес']
+2025-10-26 00:50:03 - route_optimizer - INFO - Строк в CSV: 10
+2025-10-26 00:50:03 - route_optimizer - INFO - Найдена колонка с адресами: Адрес
+2025-10-26 00:50:03 - route_optimizer - INFO - Координаты отсутствуют - будут геокодированы на клиенте
+2025-10-26 00:50:03 - route_optimizer - ERROR - Ошибка загрузки CSV: can only concatenate tuple (not "int") to tuple
+2025-10-26 00:50:03 - route_optimizer - ERROR - Traceback: Traceback (most recent call last):
+  File "/Users/felixcollins/Desktop/24.10/main.py", line 500, in upload_csv
+    latitude = 47.222 + idx * 0.001  # Временные координаты в Ростове
+TypeError: can't multiply sequence by non-int of type 'float'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/felixcollins/Desktop/24.10/main.py", line 537, in upload_csv
+    logger.warning(f"Ошибка в строке {idx + 2}: {str(e)}")
+TypeError: can only concatenate tuple (not "int") to tuple
+
+2025-10-26 00:50:03 - route_optimizer - INFO - [SUCCESS] POST /api/upload-csv - 500
+2025-10-26 00:50:51 - route_optimizer - INFO - [REQUEST] POST /api/upload-csv
+2025-10-26 00:50:51 - route_optimizer - INFO - === НАЧАЛО ЗАГРУЗКИ CSV ===
+2025-10-26 00:50:51 - route_optimizer - INFO - Request headers: {'host': 'localhost:8000', 'user-agent': 'curl/8.7.1', 'accept': '*/*', 'content-length': '909', 'content-type': 'multipart/form-data; boundary=------------------------SE4hci05ivhJhgRToN20zG'}
+2025-10-26 00:50:51 - route_optimizer - INFO - File parameter: UploadFile(filename='example_simple.csv', size=687, headers=Headers({'content-disposition': 'form-data; name="file"; filename="example_simple.csv"', 'content-type': 'application/octet-stream'}))
+2025-10-26 00:50:51 - route_optimizer - INFO - Получен файл: example_simple.csv
+2025-10-26 00:50:51 - route_optimizer - INFO - Content type: application/octet-stream
+2025-10-26 00:50:51 - route_optimizer - INFO - Размер файла: 687 байт
+2025-10-26 00:50:51 - route_optimizer - INFO - CSV колонки: ['Адрес']
+2025-10-26 00:50:51 - route_optimizer - INFO - Строк в CSV: 10
+2025-10-26 00:50:51 - route_optimizer - INFO - Найдена колонка с адресами: Адрес
+2025-10-26 00:50:51 - route_optimizer - INFO - Координаты отсутствуют - будут геокодированы на клиенте
+2025-10-26 00:50:51 - route_optimizer - INFO - Загружено 10 клиентов
+2025-10-26 00:50:51 - route_optimizer - INFO - [SUCCESS] POST /api/upload-csv - 200
+2025-10-26 00:50:58 - route_optimizer - INFO - [REQUEST] POST /api/upload-csv
+2025-10-26 00:50:58 - route_optimizer - INFO - === НАЧАЛО ЗАГРУЗКИ CSV ===
+2025-10-26 00:50:58 - route_optimizer - INFO - Request headers: {'host': 'localhost:8000', 'user-agent': 'curl/8.7.1', 'accept': '*/*', 'content-length': '1233', 'content-type': 'multipart/form-data; boundary=------------------------hF8KuHZCYr0LGxCIQ6BFuk'}
+2025-10-26 00:50:58 - route_optimizer - INFO - File parameter: UploadFile(filename='example_extended.csv', size=1009, headers=Headers({'content-disposition': 'form-data; name="file"; filename="example_extended.csv"', 'content-type': 'application/octet-stream'}))
+2025-10-26 00:50:58 - route_optimizer - INFO - Получен файл: example_extended.csv
+2025-10-26 00:50:58 - route_optimizer - INFO - Content type: application/octet-stream
+2025-10-26 00:50:58 - route_optimizer - INFO - Размер файла: 1009 байт
+2025-10-26 00:50:58 - route_optimizer - INFO - CSV колонки: ['Адрес', 'Уровень клиента', 'Время начала рабочего дня', 'Время окончания рабочего дня']
+2025-10-26 00:50:58 - route_optimizer - INFO - Строк в CSV: 10
+2025-10-26 00:50:58 - route_optimizer - INFO - Найдена колонка с адресами: Адрес
+2025-10-26 00:50:58 - route_optimizer - INFO - Координаты отсутствуют - будут геокодированы на клиенте
+2025-10-26 00:50:58 - route_optimizer - INFO - Загружено 10 клиентов
+2025-10-26 00:50:58 - route_optimizer - INFO - [SUCCESS] POST /api/upload-csv - 200
+2025-10-26 00:51:05 - route_optimizer - INFO - [REQUEST] POST /api/upload-csv
+2025-10-26 00:51:05 - route_optimizer - INFO - === НАЧАЛО ЗАГРУЗКИ CSV ===
+2025-10-26 00:51:05 - route_optimizer - INFO - Request headers: {'host': 'localhost:8000', 'user-agent': 'curl/8.7.1', 'accept': '*/*', 'content-length': '13911', 'content-type': 'multipart/form-data; boundary=------------------------OaLi5ZL2NU181jTNxP5RAe'}
+2025-10-26 00:51:05 - route_optimizer - INFO - File parameter: UploadFile(filename='test_data.csv', size=13694, headers=Headers({'content-disposition': 'form-data; name="file"; filename="test_data.csv"', 'content-type': 'application/octet-stream'}))
+2025-10-26 00:51:05 - route_optimizer - INFO - Получен файл: test_data.csv
+2025-10-26 00:51:05 - route_optimizer - INFO - Content type: application/octet-stream
+2025-10-26 00:51:05 - route_optimizer - INFO - Размер файла: 13694 байт
+2025-10-26 00:51:05 - route_optimizer - INFO - CSV колонки: ['Номер объекта', 'Адрес объекта', 'Географическая широта', 'Географическая долгота', 'Время начала рабочего дня', 'Время окончания рабочего дня', 'Время начала обеда', 'Время окончания обеда', 'Уровень клиента']
+2025-10-26 00:51:05 - route_optimizer - INFO - Строк в CSV: 100
+2025-10-26 00:51:05 - route_optimizer - INFO - Найдена колонка с адресами: Адрес объекта
+2025-10-26 00:51:05 - route_optimizer - INFO - Загружено 100 клиентов
+2025-10-26 00:51:05 - route_optimizer - INFO - [SUCCESS] POST /api/upload-csv - 200
+2025-10-26 00:51:53 - route_optimizer - INFO - [REQUEST] POST /api/upload-csv
+2025-10-26 00:51:53 - route_optimizer - INFO - === НАЧАЛО ЗАГРУЗКИ CSV ===
+2025-10-26 00:51:53 - route_optimizer - INFO - Request headers: {'host': 'localhost:8000', 'accept': '*/*', 'content-type': 'multipart/form-data; boundary=----WebKitFormBoundary5YQA7FQ2BcKgUbMU', 'origin': 'http://localhost:8000', 'sec-fetch-site': 'same-origin', 'sec-fetch-mode': 'cors', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15', 'referer': 'http://localhost:8000/static/app.html', 'sec-fetch-dest': 'empty', 'content-length': '5703', 'accept-language': 'ru', 'priority': 'u=3, i', 'accept-encoding': 'gzip, deflate', 'connection': 'keep-alive'}
+2025-10-26 00:51:53 - route_optimizer - INFO - File parameter: UploadFile(filename='Новая таблица - Лист1 (1).csv', size=5486, headers=Headers({'content-disposition': 'form-data; name="file"; filename="Ð\x9dÐ¾Ð²Ð°Ñ\x8f Ñ\x82Ð°Ð±Ð»Ð¸Ñ\x86Ð° - Ð\x9bÐ¸Ñ\x81Ñ\x821 (1).csv"', 'content-type': 'text/csv'}))
+2025-10-26 00:51:53 - route_optimizer - INFO - Получен файл: Новая таблица - Лист1 (1).csv
+2025-10-26 00:51:53 - route_optimizer - INFO - Content type: text/csv
+2025-10-26 00:51:53 - route_optimizer - INFO - Размер файла: 5486 байт
+2025-10-26 00:51:53 - route_optimizer - INFO - CSV колонки: ['№', 'Адрес объекта', 'Географическая широта', 'Географическая долгота', 'Начало рабочего дня', 'Конец рабочего дня', 'Начало обеда', 'Конец обеда', 'Уровень клиента']
+2025-10-26 00:51:53 - route_optimizer - INFO - Строк в CSV: 40
+2025-10-26 00:51:53 - route_optimizer - INFO - Найдена колонка с адресами: Адрес объекта
+2025-10-26 00:51:53 - route_optimizer - INFO - Загружено 40 клиентов
+2025-10-26 00:51:53 - route_optimizer - INFO - [SUCCESS] POST /api/upload-csv - 200
+2025-10-26 00:59:58 - route_optimizer - INFO - [REQUEST] GET /static/app.html
+2025-10-26 00:59:58 - route_optimizer - INFO - [SUCCESS] GET /static/app.html - 200
+2025-10-26 01:01:11 - route_optimizer - INFO - [REQUEST] GET /static/app.html
+2025-10-26 01:01:11 - route_optimizer - INFO - [SUCCESS] GET /static/app.html - 200
+2025-10-26 01:03:40 - route_optimizer - INFO - [REQUEST] GET /static/app.html
+2025-10-26 01:03:40 - route_optimizer - INFO - [SUCCESS] GET /static/app.html - 200
+2025-10-26 01:07:44 - route_optimizer - INFO - [REQUEST] GET /static/app.html
+2025-10-26 01:07:44 - route_optimizer - INFO - [SUCCESS] GET /static/app.html - 200
+2025-10-26 01:07:53 - route_optimizer - INFO - [REQUEST] POST /api/upload-csv
+2025-10-26 01:07:53 - route_optimizer - INFO - === НАЧАЛО ЗАГРУЗКИ CSV ===
+2025-10-26 01:07:53 - route_optimizer - INFO - Request headers: {'host': 'localhost:8000', 'accept': '*/*', 'content-type': 'multipart/form-data; boundary=----WebKitFormBoundaryhUQtPxoGBw1d9mjb', 'origin': 'http://localhost:8000', 'sec-fetch-site': 'same-origin', 'sec-fetch-mode': 'cors', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15', 'referer': 'http://localhost:8000/static/app.html', 'sec-fetch-dest': 'empty', 'content-length': '5703', 'accept-language': 'ru', 'priority': 'u=3, i', 'accept-encoding': 'gzip, deflate', 'connection': 'keep-alive'}
+2025-10-26 01:07:53 - route_optimizer - INFO - File parameter: UploadFile(filename='Новая таблица - Лист1 (1).csv', size=5486, headers=Headers({'content-disposition': 'form-data; name="file"; filename="Ð\x9dÐ¾Ð²Ð°Ñ\x8f Ñ\x82Ð°Ð±Ð»Ð¸Ñ\x86Ð° - Ð\x9bÐ¸Ñ\x81Ñ\x821 (1).csv"', 'content-type': 'text/csv'}))
+2025-10-26 01:07:53 - route_optimizer - INFO - Получен файл: Новая таблица - Лист1 (1).csv
+2025-10-26 01:07:53 - route_optimizer - INFO - Content type: text/csv
+2025-10-26 01:07:53 - route_optimizer - INFO - Размер файла: 5486 байт
+2025-10-26 01:07:53 - route_optimizer - INFO - CSV колонки: ['№', 'Адрес объекта', 'Географическая широта', 'Географическая долгота', 'Начало рабочего дня', 'Конец рабочего дня', 'Начало обеда', 'Конец обеда', 'Уровень клиента']
+2025-10-26 01:07:53 - route_optimizer - INFO - Строк в CSV: 40
+2025-10-26 01:07:53 - route_optimizer - INFO - Найдена колонка с адресами: Адрес объекта
+2025-10-26 01:07:53 - route_optimizer - INFO - Загружено 40 клиентов
+2025-10-26 01:07:53 - route_optimizer - INFO - [SUCCESS] POST /api/upload-csv - 200
+2025-10-26 02:48:55 - route_optimizer - INFO - [REQUEST] GET /
+2025-10-26 02:48:55 - route_optimizer - INFO - [SUCCESS] GET / - 200
+2025-10-26 02:49:01 - route_optimizer - INFO - [REQUEST] GET /app.html
+2025-10-26 02:49:01 - route_optimizer - INFO - [SUCCESS] GET /app.html - 200

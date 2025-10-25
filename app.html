@@ -1,0 +1,2231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Центр-Инвест | Планирование маршрутов</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=aaabadf0-75bf-456f-9d5b-99fec4f040fa&lang=ru_RU" type="text/javascript"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        @keyframes slideInFromRight {
+            from { 
+                opacity: 0; 
+                transform: translateX(400px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+        }
+
+        @keyframes slideOutToRight {
+            from { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+            to { 
+                opacity: 0; 
+                transform: translateX(400px); 
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0;
+            background: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .footer {
+            background: #1e1e1e;
+            border-top: 1px solid #333;
+            color: #888;
+            padding: 20px 40px;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .footer-info {
+            text-align: left;
+        }
+        
+        .footer-info p {
+            margin: 3px 0;
+            color: #777;
+        }
+        
+        .footer-license {
+            color: #38ef7d;
+            font-weight: 500;
+            font-size: 11px;
+        }
+        
+        .footer-phone {
+            font-size: 14px;
+            font-weight: 600;
+            color: #38ef7d;
+        }
+
+        /* Система уведомлений */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .notification {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            min-width: 320px;
+            max-width: 400px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: all;
+            border-left: 4px solid #38ef7d;
+        }
+
+        .notification.success {
+            border-left-color: #38ef7d;
+        }
+
+        .notification.error {
+            border-left-color: #ff4757;
+        }
+
+        .notification.warning {
+            border-left-color: #ffa502;
+        }
+
+        .notification.info {
+            border-left-color: #11998e;
+        }
+
+        .notification.closing {
+            animation: slideOutToRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .notification-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .notification-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #11998e, #38ef7d);
+            border-radius: 0 0 0 12px;
+            animation: shrink 5s linear forwards;
+        }
+
+        @keyframes shrink {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-bottom: none;
+            padding: 20px 40px;
+            height: 100px;
+            min-height: 100px;
+            max-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(17, 153, 142, 0.4);
+            animation: slideInLeft 0.8s ease-out;
+        }
+
+        .bank-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInLeft 1s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .bank-logo img {
+            height: 100px;
+            max-height: 100px;
+            max-width: 500px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 15px rgba(0,0,0,0.3));
+            transition: all 0.3s ease;
+        }
+
+        .bank-logo:hover img {
+            transform: scale(1.05);
+            filter: drop-shadow(0 6px 20px rgba(255,255,255,0.4));
+        }
+
+        .header-title {
+            flex: 1;
+            text-align: center;
+            padding: 0 40px;
+            animation: fadeIn 1.2s ease-out;
+        }
+
+        .header-title h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-title p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.9);
+            font-weight: 400;
+        }
+
+        .header-auth {
+            display: flex;
+            gap: 12px;
+            animation: slideInRight 1s ease-out;
+        }
+
+        .auth-btn {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 24px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .auth-btn:hover {
+            background: white;
+            color: #11998e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.4);
+            border-color: white;
+        }
+
+        .auth-btn.register {
+            background: white;
+            color: #11998e;
+            border-color: white;
+        }
+
+        .auth-btn.register:hover {
+            background: rgba(255,255,255,0.9);
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        /* Профиль пользователя */
+        .user-profile {
+            display: none;
+            position: relative;
+        }
+
+        .user-profile.active {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            border: 2px solid rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+            border-color: white;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.3);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            cursor: pointer;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .user-email {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            min-width: 220px;
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .user-dropdown.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .user-dropdown-item {
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .user-dropdown-item:first-child {
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .user-dropdown-item:last-child {
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            border-bottom: none;
+        }
+
+        .user-dropdown-item:hover {
+            background: #f8f9fd;
+            color: #11998e;
+        }
+
+        .user-dropdown-item.logout {
+            color: #ff4757;
+        }
+
+        .user-dropdown-item.logout:hover {
+            background: #fff5f5;
+            color: #ff4757;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 0;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #ffffff 0%, #f8f9fd 100%);
+            padding: 32px 24px;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+            height: calc(100vh - 88px);
+            animation: slideInLeft 0.8s ease-out;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+
+        .map-container {
+            position: relative;
+            background: #1a1a1a;
+            animation: fadeIn 1s ease-out;
+            box-shadow: -4px 0 20px rgba(17, 153, 142, 0.2);
+        }
+
+        #map {
+            width: 100%;
+            height: calc(100vh - 88px);
+        }
+
+        .control-group {
+            margin-bottom: 24px;
+            animation: fadeIn 1s ease-out backwards;
+        }
+
+        .control-group:nth-child(1) { animation-delay: 0.1s; }
+        .control-group:nth-child(2) { animation-delay: 0.2s; }
+        .control-group:nth-child(3) { animation-delay: 0.3s; }
+        .control-group:nth-child(4) { animation-delay: 0.4s; }
+        .control-group:nth-child(5) { animation-delay: 0.5s; }
+        .control-group:nth-child(6) { animation-delay: 0.6s; }
+
+        .control-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #11998e;
+            font-size: 13px;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
+
+        .control-group:hover label {
+            transform: translateX(3px);
+            color: #38ef7d;
+        }
+
+        .control-group input,
+        .control-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            color: #333;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            outline: none;
+            border-color: #38ef7d;
+            box-shadow: 0 0 0 4px rgba(56, 239, 125, 0.15), 0 4px 12px rgba(56, 239, 125, 0.2);
+            transform: translateY(-2px);
+            background: white;
+        }
+
+        .control-group input:hover,
+        .control-group select:hover {
+            border-color: #11998e;
+            box-shadow: 0 2px 8px rgba(17, 153, 142, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 13px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 12px;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            opacity: 0;
+        }
+
+        .btn:hover::before {
+            animation: ripple 0.6s ease-out forwards;
+        }
+
+        @keyframes ripple {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0.8;
+            }
+            100% {
+                width: 300px;
+                height: 300px;
+                opacity: 0;
+            }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(56, 239, 125, 0.5);
+            transition: all 0.3s ease-out;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #666;
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9fd;
+            border-color: #38ef7d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(56, 239, 125, 0.25);
+            transition: all 0.3s ease-out;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .btn-info:hover {
+            animation: none;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(56, 239, 125, 0.6);
+            transition: all 0.3s ease-out;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(67, 160, 71, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(102, 187, 106, 0.6);
+            transition: all 0.3s ease-out;
+        }
+
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: 14px;
+            background: white;
+            border: 2px dashed #5cb85c;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #5cb85c;
+            font-weight: 600;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .file-upload-label:hover {
+            background: #f0f8f0;
+            border-color: #4cae4c;
+            box-shadow: 0 2px 8px rgba(92, 184, 92, 0.2);
+        }
+
+        .metrics {
+            background: white;
+            border: 2px solid #5cb85c;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .metrics h3 {
+            color: #5cb85c;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .metric-item:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            color: #333;
+        }
+
+        .route-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .route-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .route-item:hover {
+            border-color: #5cb85c;
+            box-shadow: 0 2px 8px rgba(92, 184, 92, 0.2);
+        }
+
+        .route-number {
+            display: inline-block;
+            background: #5cb85c;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+
+        .route-item-vip {
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .vip-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #5cb85c;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0c5460;
+        }
+
+        .route-time {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Контейнер для уведомлений -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <div class="container">
+        <div class="header">
+            <div class="bank-logo">
+                <img src="/logo.png" alt="Центр-Инвест" />
+            </div>
+            <div class="header-title">
+                <h1>Планирование маршрутов</h1>
+                <p>Оптимизация выездов к клиентам</p>
+            </div>
+            <div class="header-auth" id="authButtons">
+                <a href="/login.html" class="auth-btn">Вход</a>
+                <a href="/register.html" class="auth-btn register">Регистрация</a>
+            </div>
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar" id="userAvatar" onclick="toggleUserDropdown()">
+                    <!-- Инициалы пользователя -->
+                </div>
+                <div class="user-info" onclick="toggleUserDropdown()">
+                    <div class="user-name" id="userName"></div>
+                    <div class="user-email" id="userEmail"></div>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <a href="/profile.html" class="user-dropdown-item">
+                        Личный кабинет
+                    </a>
+                    <div class="user-dropdown-item" onclick="showSettings()">
+                        Настройки
+                    </div>
+                    <div class="user-dropdown-item logout" onclick="logout()">
+                        Выйти
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+
+                <div class="control-group">
+                    <label>Загрузка адресов из CSV</label>
+                    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 2px dashed rgba(255,255,255,0.2);">
+                        <div class="file-upload">
+                            <input type="file" id="csvFile" accept=".csv">
+                            <label for="csvFile" class="file-upload-label" style="margin-bottom: 10px;">
+                                Выберите CSV файл
+                            </label>
+                        </div>
+                        <div id="csvFileInfo" style="display: none; margin-top: 10px; padding: 10px; background: rgba(102, 187, 106, 0.2); border-radius: 6px; border-left: 3px solid #66bb6a;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div id="csvFileName" style="font-weight: 600; color: #66bb6a; margin-bottom: 3px;"></div>
+                                    <div id="csvFileSize" style="font-size: 12px; color: #aaa;"></div>
+                                </div>
+                                <button onclick="clearCsvFile()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                    Очистить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-info" onclick="loadTestData()">
+                    Отправиться в путь
+                </button>
+                
+                <button class="btn btn-success" onclick="startNavigation()" id="navButton" style="display:none; margin-left: 10px;">
+                    Начать навигацию
+                </button>
+
+                <div class="control-group">
+                    <label>Откуда начать маршрут?</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <button class="btn" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);" onclick="useMyLocation()">
+Моё местоположение
+                        </button>
+                    </div>
+                    <input type="text" id="startAddress" placeholder="Или введите адрес: ул. Пушкинская, 1" style="width: 100%; padding: 10px;">
+                    <button class="btn" style="width: 100%; margin-top: 8px; background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%); color: white; box-shadow: 0 4px 15px rgba(67, 160, 71, 0.4);" onclick="geocodeAddress()">
+Найти адрес на карте
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <label>Время начала работы</label>
+                    <input type="time" id="startTime" value="09:00">
+                </div>
+
+                <div class="control-group">
+                    <label>Длительность визита (минут)</label>
+                    <input type="number" id="visitDuration" value="30" min="15" max="120">
+                </div>
+
+                <button class="btn btn-primary" onclick="optimizeRoute()">
+                    🎯 Построить оптимальный маршрут
+                </button>
+
+                <button class="btn btn-secondary" onclick="clearRoute()">
+                    🗑️ Очистить маршрут
+                </button>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Оптимизация маршрута...</p>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
+
+                <div class="metrics" id="metrics" style="display: none;">
+                    <h3>Метрики маршрута</h3>
+                    <div class="metric-item">
+                        <span class="metric-label">Всего клиентов:</span>
+                        <span class="metric-value" id="totalClients">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Общее расстояние:</span>
+                        <span class="metric-value" id="totalDistance">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Общее время:</span>
+                        <span class="metric-value" id="totalTime">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Эффективность:</span>
+                        <span class="metric-value" id="efficiency">-</span>
+                    </div>
+                </div>
+
+                <div class="route-list" id="routeList"></div>
+            </div>
+
+            <div class="map-container">
+                <!-- Навигационная панель -->
+                <div id="navigationPanel" style="display:none; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); min-width: 400px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0; color: #11998e;">Навигация</h3>
+                        <button onclick="stopNavigation()" style="background: #ff4757; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Остановить</button>
+                    </div>
+                    <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Следующая точка:</div>
+                        <div id="navNextPoint" style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px;">-</div>
+                        <div style="display: flex; gap: 20px;">
+                            <div>
+                                <div style="font-size: 12px; color: #666;">Расстояние</div>
+                                <div id="navDistance" style="font-size: 24px; font-weight: bold; color: #11998e;">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: #666;">Время</div>
+                                <div id="navTime" style="font-size: 24px; font-weight: bold; color: #11998e;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="navInstructions" style="font-size: 14px; color: #666;">
+                        Ожидание геолокации...
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div style="font-size: 12px; color: #666;">Прогресс маршрута</div>
+                        <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 5px;">
+                            <div id="navProgress" style="background: linear-gradient(90deg, #11998e, #38ef7d); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                        <div id="navProgressText" style="font-size: 12px; color: #666; margin-top: 5px;">0 из 0 точек</div>
+                    </div>
+                </div>
+                
+                <div id="map"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let map;
+        let clients = [];
+        let currentRoute = null;
+        let routePolyline = null;
+        let markers = [];
+        let routeElements = []; // Элементы маршрута (линии, стрелки)
+        let startLocation = null; // Стартовая точка маршрута
+
+        // ==================== АВТОРИЗАЦИЯ И ПРОФИЛЬ ====================
+        
+        // Проверка авторизации при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+        });
+
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            const userStr = localStorage.getItem('user');
+            
+            if (token && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    showUserProfile(user);
+                } catch (e) {
+                    // Если токен некорректный - показываем кнопки авторизации
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('user');
+                    showAuthButtons();
+                }
+            } else {
+                // Если не авторизован - показываем кнопки авторизации
+                showAuthButtons();
+            }
+        }
+        
+        function showAuthButtons() {
+            // Показываем кнопки авторизации
+            document.getElementById('authButtons').style.display = 'flex';
+            
+            // Скрываем профиль
+            const profile = document.getElementById('userProfile');
+            if (profile) {
+                profile.style.display = 'none';
+            }
+        }
+
+        function showUserProfile(user) {
+            // Скрываем кнопки авторизации
+            document.getElementById('authButtons').style.display = 'none';
+            
+            // Показываем профиль
+            const profile = document.getElementById('userProfile');
+            profile.classList.add('active');
+            
+            // Устанавливаем данные пользователя
+            const nameParts = user.email.split('@')[0].split('.');
+            const initials = nameParts.map(p => p[0].toUpperCase()).join('');
+            
+            document.getElementById('userAvatar').textContent = initials.slice(0, 2);
+            document.getElementById('userName').textContent = nameParts.join(' ') || user.email.split('@')[0];
+            document.getElementById('userEmail').textContent = user.email;
+        }
+
+        function showAuthButtons() {
+            // Показываем кнопки авторизации
+            document.getElementById('authButtons').style.display = 'flex';
+            
+            // Скрываем профиль
+            document.getElementById('userProfile').classList.remove('active');
+        }
+
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function showSettings() {
+            showInfo('Настройки пока в разработке', 'ℹ️ Настройки');
+            toggleUserDropdown();
+        }
+
+        function logout() {
+            // Удаляем данные авторизации
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
+            
+            // Закрываем дропдаун
+            document.getElementById('userDropdown').classList.remove('show');
+            
+            // Показываем кнопки авторизации
+            showAuthButtons();
+            
+            showSuccess('Вы успешно вышли из системы', 'До встречи!');
+        }
+
+        // Отправка статистики на сервер
+        async function saveRouteStats(clientsCount, distance, time) {
+            try {
+                const token = localStorage.getItem('access_token');
+                
+                // Если пользователь не авторизован, пропускаем
+                if (!token) {
+                    console.log('Статистика не сохранена: пользователь не авторизован');
+                    return;
+                }
+                
+                const response = await fetch('/api/stats/route', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        clients_count: clientsCount,
+                        distance: distance,
+                        time: time
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('Статистика успешно сохранена');
+                } else {
+                    console.warn('Не удалось сохранить статистику');
+                }
+            } catch (error) {
+                console.error('Ошибка сохранения статистики:', error);
+            }
+        }
+
+        // Закрываем дропдаун при клике вне его
+        document.addEventListener('click', function(event) {
+            const profile = document.getElementById('userProfile');
+            const dropdown = document.getElementById('userDropdown');
+            
+            if (profile && !profile.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // ==================== РЕЖИМ НАВИГАЦИИ ====================
+        
+        let navigationMode = false;
+        let navigationWatchId = null;
+        // currentRoute уже объявлен выше
+        let currentPointIndex = 0;
+        let currentLocationMarker = null;
+        let navigationRoutePolyline = null;
+        
+        // Начать навигацию
+        function startNavigation() {
+            if (!currentRoute || !currentRoute.route || currentRoute.route.length === 0) {
+                showError('Сначала постройте маршрут!', 'Ошибка');
+                return;
+            }
+            
+            navigationMode = true;
+            currentPointIndex = 0;
+            
+            // Показываем панель навигации
+            document.getElementById('navigationPanel').style.display = 'block';
+            document.getElementById('navButton').style.display = 'none';
+            
+            // Запускаем отслеживание геолокации
+            if (navigator.geolocation) {
+                navigationWatchId = navigator.geolocation.watchPosition(
+                    updateNavigationPosition,
+                    handleNavigationError,
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+                
+                showSuccess('Навигация запущена. Следуйте по маршруту.', 'Навигация');
+            } else {
+                showError('Геолокация не поддерживается вашим браузером', 'Ошибка');
+                stopNavigation();
+            }
+        }
+        
+        // Остановить навигацию
+        function stopNavigation() {
+            navigationMode = false;
+            
+            if (navigationWatchId) {
+                navigator.geolocation.clearWatch(navigationWatchId);
+                navigationWatchId = null;
+            }
+            
+            // Скрываем панель навигации
+            document.getElementById('navigationPanel').style.display = 'none';
+            document.getElementById('navButton').style.display = 'inline-block';
+            
+            // Удаляем маркер текущего положения
+            if (currentLocationMarker) {
+                map.geoObjects.remove(currentLocationMarker);
+                currentLocationMarker = null;
+            }
+            
+            // Удаляем навигационную линию
+            if (navigationRoutePolyline) {
+                map.geoObjects.remove(navigationRoutePolyline);
+                navigationRoutePolyline = null;
+            }
+            
+            showInfo('Навигация остановлена', 'Навигация');
+        }
+        
+        // Обновление позиции в навигации
+        async function updateNavigationPosition(position) {
+            const currentCoords = [position.coords.latitude, position.coords.longitude];
+            
+            // Обновляем или создаем маркер текущего положения
+            if (currentLocationMarker) {
+                currentLocationMarker.geometry.setCoordinates(currentCoords);
+            } else {
+                currentLocationMarker = new ymaps.Placemark(currentCoords, {
+                    balloonContent: 'Ваше текущее положение'
+                }, {
+                    preset: 'islands#blueCircleDotIcon',
+                    iconColor: '#007bff'
+                });
+                map.geoObjects.add(currentLocationMarker);
+            }
+            
+            // Центрируем карту на текущей позиции
+            map.setCenter(currentCoords, 16, { duration: 500 });
+            
+            // Получаем текущую целевую точку
+            if (currentPointIndex >= currentRoute.route.length) {
+                showSuccess('Вы достигли всех точек маршрута!', 'Маршрут завершен');
+                stopNavigation();
+                return;
+            }
+            
+            const targetPoint = currentRoute.route[currentPointIndex];
+            const targetCoords = [targetPoint.latitude, targetPoint.longitude];
+            
+            // Вычисляем расстояние до целевой точки
+            const distance = getDistanceFromLatLon(
+                currentCoords[0], currentCoords[1],
+                targetCoords[0], targetCoords[1]
+            );
+            
+            // Обновляем UI
+            document.getElementById('navNextPoint').textContent = targetPoint.address;
+            document.getElementById('navDistance').textContent = distance < 1 
+                ? Math.round(distance * 1000) + ' м'
+                : distance.toFixed(1) + ' км';
+            
+            // Строим маршрут от текущей позиции до целевой точки
+            await buildNavigationRoute(currentCoords, targetCoords);
+            
+            // Если достигли точки (< 50 метров), переходим к следующей
+            if (distance < 0.05) {
+                currentPointIndex++;
+                showSuccess(`Достигнута точка: ${targetPoint.address}`, 'Точка достигнута');
+                
+                // Обновляем прогресс
+                const progress = (currentPointIndex / currentRoute.route.length) * 100;
+                document.getElementById('navProgress').style.width = progress + '%';
+                document.getElementById('navProgressText').textContent = 
+                    `${currentPointIndex} из ${currentRoute.route.length} точек`;
+            }
+        }
+        
+        // Построение маршрута для навигации
+        async function buildNavigationRoute(from, to) {
+            try {
+                // Удаляем предыдущий маршрут
+                if (navigationRoutePolyline) {
+                    map.geoObjects.remove(navigationRoutePolyline);
+                }
+                
+                // Используем Яндекс.Маршрутизатор для построения пути по дорогам
+                const multiRoute = new ymaps.multiRouter.MultiRoute({
+                    referencePoints: [from, to],
+                    params: {
+                        routingMode: 'auto'
+                    }
+                }, {
+                    boundsAutoApply: false,
+                    wayPointVisible: false,
+                    routeActiveStrokeWidth: 6,
+                    routeActiveStrokeColor: '#007bff'
+                });
+                
+                map.geoObjects.add(multiRoute);
+                
+                // Получаем информацию о маршруте
+                multiRoute.model.events.add('requestsuccess', function () {
+                    const activeRoute = multiRoute.getActiveRoute();
+                    if (activeRoute) {
+                        const distance = activeRoute.properties.get('distance');
+                        const duration = activeRoute.properties.get('duration');
+                        
+                        // Обновляем время
+                        const minutes = Math.round(duration.value / 60);
+                        document.getElementById('navTime').textContent = 
+                            minutes < 60 ? minutes + ' мин' : Math.floor(minutes / 60) + ' ч ' + (minutes % 60) + ' мин';
+                        
+                        // Получаем текстовые инструкции
+                        const segments = activeRoute.getPaths().get(0).getSegments();
+                        if (segments.getLength() > 0) {
+                            const firstSegment = segments.get(0);
+                            const instruction = firstSegment.properties.get('text');
+                            document.getElementById('navInstructions').textContent = instruction || 'Следуйте по маршруту';
+                        }
+                    }
+                });
+                
+                navigationRoutePolyline = multiRoute;
+                
+            } catch (error) {
+                console.error('Ошибка построения навигационного маршрута:', error);
+                // Fallback - простая линия
+                const simpleLine = new ymaps.Polyline([from, to], {}, {
+                    strokeColor: '#007bff',
+                    strokeWidth: 5,
+                    strokeOpacity: 0.7
+                });
+                map.geoObjects.add(simpleLine);
+                navigationRoutePolyline = simpleLine;
+            }
+        }
+        
+        // Обработка ошибок геолокации
+        function handleNavigationError(error) {
+            let errorMessage = 'Ошибка определения местоположения';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage = 'Разрешите доступ к геолокации для навигации';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage = 'Информация о местоположении недоступна';
+                    break;
+                case error.TIMEOUT:
+                    errorMessage = 'Превышено время ожидания геолокации';
+                    break;
+            }
+            showError(errorMessage, 'Ошибка навигации');
+            document.getElementById('navInstructions').textContent = errorMessage;
+        }
+        
+        // Вычисление расстояния между двумя точками (формула Haversine)
+        function getDistanceFromLatLon(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Радиус Земли в км
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Расстояние в км
+        }
+        
+        function deg2rad(deg) {
+            return deg * (Math.PI/180);
+        }
+
+        // ==================== ИНИЦИАЛИЗАЦИЯ КАРТЫ ====================
+
+        // Инициализация карты
+        ymaps.ready(init);
+
+        function init() {
+            map = new ymaps.Map("map", {
+                center: [47.227778, 39.718611], // Ростов-на-Дону
+                zoom: 12,
+                controls: ['zoomControl', 'typeSelector', 'fullscreenControl']
+            });
+
+            // Клик по карте для выбора стартовой точки
+            map.events.add('click', function (e) {
+                const coords = e.get('coords');
+                setStartLocation(coords);
+            });
+        }
+
+        // Использовать мою геолокацию
+        function useMyLocation() {
+            if (navigator.geolocation) {
+                showSuccess('Определяем ваше местоположение...');
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const coords = [position.coords.latitude, position.coords.longitude];
+                    
+                    // Получаем адрес по координатам (обратное геокодирование)
+                    ymaps.geocode(coords).then(function(res) {
+                        const firstGeoObject = res.geoObjects.get(0);
+                        const address = firstGeoObject ? firstGeoObject.getAddressLine() : 'Ваше местоположение';
+                        
+                        setStartLocation(coords, address);
+                        map.setCenter(coords, 15);
+                        showSuccess(`Ваше местоположение: ${address}`, 'Геолокация');
+                    });
+                }, function(error) {
+                    showError('Не удалось определить ваше местоположение. Проверьте разрешения браузера.', 'Геолокация');
+                });
+            } else {
+                showError('Ваш браузер не поддерживает определение местоположения.', 'Геолокация недоступна');
+            }
+        }
+
+        // Установить стартовую точку
+        function setStartLocation(coords, address = null) {
+            startLocation = coords;
+            
+            // Удаляем старый маркер стартовой точки
+            const oldMarker = markers.find(m => m.properties && m.properties.get('isStartPoint'));
+            if (oldMarker) {
+                map.geoObjects.remove(oldMarker);
+                const index = markers.indexOf(oldMarker);
+                if (index > -1) markers.splice(index, 1);
+            }
+            
+            // Добавляем новый маркер с анимацией
+            const startMarker = new ymaps.Placemark(coords, {
+                balloonContent: `<strong style="color: #2196F3; font-size: 16px;">🏠 СТАРТ</strong><br><b>${address || 'Моё местоположение'}</b><br><i>Маршрут начнётся отсюда</i>`,
+                hintContent: '🏠 Начальная точка маршрута',
+                isStartPoint: true
+            }, {
+                preset: 'islands#blueCircleDotIconWithCaption',
+                iconColor: '#2196F3',
+                iconCaptionMaxWidth: '200'
+            });
+            
+            map.geoObjects.add(startMarker);
+            markers.push(startMarker);
+            
+            if (address) {
+                document.getElementById('startAddress').value = address;
+            }
+        }
+
+        // Геокодирование адреса (поиск на карте)
+        function geocodeAddress() {
+            const address = document.getElementById('startAddress').value.trim();
+            
+            if (!address) {
+                showError('Пожалуйста, введите адрес для поиска', 'Пустое поле');
+                return;
+            }
+            
+            showInfo('Ищем адрес на карте...', 'Поиск');
+            
+            ymaps.geocode(address, {
+                results: 1,
+                boundedBy: [[47.15, 39.6], [47.35, 39.85]] // Ограничиваем поиск Ростовом
+            }).then(function (res) {
+                const firstGeoObject = res.geoObjects.get(0);
+                
+                if (firstGeoObject) {
+                    const coords = firstGeoObject.geometry.getCoordinates();
+                    const foundAddress = firstGeoObject.getAddressLine();
+                    
+                    setStartLocation(coords, foundAddress);
+                    map.setCenter(coords, 15);
+                    showSuccess(`Адрес найден и установлен как стартовая точка: ${foundAddress}`, 'Адрес найден');
+                } else {
+                    showError('Адрес не найден. Проверьте правильность ввода или попробуйте другой.', 'Не найдено');
+                }
+            }, function (err) {
+                showError('Ошибка при поиске адреса. Попробуйте ещё раз.', 'Ошибка поиска');
+            });
+        }
+
+        // Очистка CSV файла
+        function clearCsvFile() {
+            document.getElementById('csvFile').value = '';
+            document.getElementById('csvFileInfo').style.display = 'none';
+            clients = [];
+            markers.forEach(marker => map.geoObjects.remove(marker));
+            markers = [];
+            showInfo('CSV файл очищен', 'Очистка');
+        }
+
+        // Загрузка CSV файла
+        document.getElementById('csvFile').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                document.getElementById('csvFileInfo').style.display = 'none';
+                return;
+            }
+
+            // Валидация файла
+            if (!file.name.endsWith('.csv')) {
+                showError('Пожалуйста, выберите CSV файл', 'Неверный формат');
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB макс
+                showError('Файл слишком большой (макс. 5MB)', 'Ошибка размера');
+                event.target.value = '';
+                return;
+            }
+
+            // Показываем информацию о файле
+            document.getElementById('csvFileName').textContent = file.name;
+            document.getElementById('csvFileSize').textContent = `${(file.size / 1024).toFixed(2)} KB`;
+            document.getElementById('csvFileInfo').style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            console.log('Отправляем файл:', file.name, 'размер:', file.size, 'тип:', file.type);
+
+            try {
+                showLoading(true);
+                showInfo('Загружаем и обрабатываем CSV файл...', 'Загрузка');
+                
+                const response = await fetch('/api/upload-csv', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('Ответ сервера:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Ошибка сервера:', errorData);
+                    showError(errorData.error || 'Ошибка загрузки файла', 'Ошибка ' + response.status);
+                    document.getElementById('csvFileInfo').style.display = 'none';
+                    event.target.value = '';
+                    showLoading(false);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Данные ответа:', data);
+                
+                if (data.success) {
+                    clients = data.clients;
+                    
+                    // Геокодируем адреса
+                    showInfo(`Геокодируем ${clients.length} адресов...`, 'Обработка');
+                    await geocodeAllAddresses(clients);
+                    
+                    // Выбираем случайные 15 для маршрута
+                    const shuffled = [...clients].sort(() => 0.5 - Math.random());
+                    clients = shuffled.slice(0, Math.min(15, clients.length));
+                    clients.forEach((client, idx) => {
+                        client.id = idx + 1;
+                    });
+                    
+                    showSuccess(`Загружено и геокодировано ${clients.length} адресов из ${data.clients.length}`, 'Готово!');
+                    displayClientsOnMap();
+                } else {
+                    showError(data.error || 'Ошибка загрузки файла', 'Ошибка');
+                    document.getElementById('csvFileInfo').style.display = 'none';
+                    event.target.value = '';
+                }
+            } catch (error) {
+                showError('Ошибка загрузки: ' + error.message, 'Ошибка соединения');
+                document.getElementById('csvFileInfo').style.display = 'none';
+                event.target.value = '';
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Загрузка тестовых данных
+        async function loadTestData() {
+            try {
+                showLoading(true);
+                showInfo('Загружаем все 100 адресов для геокодирования...', 'Загрузка');
+                
+                // Загружаем ВСЕ 100 адресов
+                const response = await fetch('/api/all-data');
+                const data = await response.json();
+
+                if (data.success) {
+                    const allClients = data.clients;
+                    console.log(`Загружено ${allClients.length} адресов`);
+                    
+                    // Геокодируем ВСЕ адреса
+                    showInfo(`Геокодируем ${allClients.length} адресов через Яндекс.Карты...`, 'Геокодирование');
+                    await geocodeAllAddresses(allClients);
+                    
+                    // Выбираем случайные 15 для работы
+                    const shuffled = [...allClients].sort(() => 0.5 - Math.random());
+                    clients = shuffled.slice(0, 15);
+                    
+                    // Переиндексируем от 1 до 15
+                    clients.forEach((client, idx) => {
+                        client.id = idx + 1;
+                    });
+                    
+                    const vipCount = clients.filter(c => c.is_vip).length;
+                    
+                    let message = `Выбрано ${clients.length} адресов из ${allClients.length} (все геокодированы). `;
+                    if (vipCount > 0) {
+                        message += `VIP клиентов: ${vipCount}.`;
+                    }
+                    
+                    showSuccess(message, 'Готово!');
+                    displayClientsOnMap();
+                } else {
+                    showError('Не удалось загрузить данные. Попробуйте ещё раз.', 'Ошибка загрузки');
+                }
+            } catch (error) {
+                showError('Проблема с сервером: ' + error.message, 'Ошибка соединения');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Геокодирование всех адресов
+        async function geocodeAllAddresses(clientsList) {
+            const total = clientsList.length;
+            console.log(`Начинаем геокодирование ${total} адресов...`);
+            
+            let geocoded = 0;
+            let failed = 0;
+            
+            for (let i = 0; i < total; i++) {
+                const client = clientsList[i];
+                try {
+                    const coords = await geocodeAddressCoords(client.address);
+                    if (coords) {
+                        console.log(`${i+1}/${total}: ${client.address.substring(0, 50)}... → [${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}]`);
+                        client.latitude = coords[0];
+                        client.longitude = coords[1];
+                        geocoded++;
+                    } else {
+                        console.warn(`${i+1}/${total}: Не удалось геокодировать ${client.address.substring(0, 50)}..., используем исходные`);
+                        failed++;
+                    }
+                } catch (error) {
+                    console.error(`${i+1}/${total}: Ошибка геокодирования ${client.address.substring(0, 50)}...:`, error);
+                    failed++;
+                }
+                
+                // Обновляем прогресс каждые 10 адресов
+                if ((i + 1) % 10 === 0 || i === total - 1) {
+                    showInfo(`Геокодировано: ${i + 1}/${total}... (успешно: ${geocoded}, пропущено: ${failed})`, 'Прогресс');
+                }
+                
+                // Небольшая задержка между запросами, чтобы не перегрузить API
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            console.log(`Геокодирование завершено: успешно ${geocoded}/${total}, пропущено ${failed}`);
+        }
+
+        // Геокодирование одного адреса через Яндекс.Карты API
+        function geocodeAddressCoords(address) {
+            return new Promise((resolve, reject) => {
+                // Убираем индекс для более точного поиска
+                const cleanAddress = address.replace(/^\d{6},\s*/, '');
+                
+                ymaps.geocode(cleanAddress, {
+                    results: 1,
+                    // Жесткое ограничение поиска Ростовом-на-Дону
+                    boundedBy: [[47.0, 39.5], [47.4, 40.0]],
+                    strictBounds: true,
+                    // Указываем, что ищем именно дом
+                    kind: 'house'
+                }).then(function (res) {
+                    const firstGeoObject = res.geoObjects.get(0);
+                    if (firstGeoObject) {
+                        const coords = firstGeoObject.geometry.getCoordinates();
+                        const precision = firstGeoObject.properties.get('metaDataProperty.GeocoderMetaData.precision');
+                        
+                        // Логируем точность
+                        console.log(`   Точность: ${precision}`);
+                        
+                        resolve(coords);
+                    } else {
+                        resolve(null);
+                    }
+                }).catch(function (error) {
+                    console.error('Ошибка геокодирования:', error);
+                    resolve(null);
+                });
+            });
+        }
+
+        // Отображение клиентов на карте
+        function displayClientsOnMap() {
+            // Очищаем предыдущие маркеры
+            markers.forEach(marker => map.geoObjects.remove(marker));
+            markers = [];
+
+            clients.forEach((client, index) => {
+                const placemark = new ymaps.Placemark(
+                    [client.latitude, client.longitude],
+                    {
+                        balloonContent: `
+                            <strong>${client.address}</strong><br>
+                            ${client.priority === 'VIP' ? '<span style="color: red; font-weight: bold;">VIP клиент</span><br>' : ''}
+                            Работает: ${client.work_start} - ${client.work_end}<br>
+                            Обед: ${client.lunch_start} - ${client.lunch_end}
+                        `,
+                        hintContent: client.address
+                    },
+                    {
+                        preset: client.priority === 'VIP' ? 'islands#redDotIcon' : 'islands#blueDotIcon',
+                        iconColor: client.priority === 'VIP' ? '#ff6b6b' : '#2196F3'
+                    }
+                );
+
+                map.geoObjects.add(placemark);
+                markers.push(placemark);
+            });
+
+            // Автоматически подстраиваем границы карты
+            if (clients.length > 0) {
+                map.setBounds(map.geoObjects.getBounds(), {
+                    checkZoomRange: true,
+                    zoomMargin: 50
+                });
+            }
+        }
+
+        // Оптимизация маршрута
+        async function optimizeRoute() {
+            if (clients.length === 0) {
+                showError('Сначала загрузите адреса!', 'Нет данных');
+                return;
+            }
+
+            const startTime = document.getElementById('startTime').value;
+            const visitDuration = parseInt(document.getElementById('visitDuration').value);
+            
+            // Анализ клиентов
+            const vipCount = clients.filter(c => c.is_vip).length;
+            const withTimeWindows = clients.filter(c => c.preferred_time_start || c.preferred_time_end).length;
+            
+            // Уведомление о начале
+            showInfo(
+                `Оптимизирую маршрут для ${clients.length} клиентов. ${vipCount > 0 ? `VIP: ${vipCount}. ` : ''}Это может занять несколько секунд...`,
+                '🚀 Построение маршрута'
+            );
+
+            try {
+                console.log('🚀 Начинаем оптимизацию маршрута...');
+                showLoading(true);
+                
+                // Таймаут на 30 секунд
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                
+                console.log(`   Клиентов: ${clients.length}, Старт: ${startTime}`);
+                
+                // Подготавливаем данные для запроса
+                const requestData = {
+                    clients: clients,
+                    start_time: startTime,
+                    visit_duration: visitDuration
+                };
+                
+                // Добавляем стартовую точку, если она установлена
+                if (startLocation) {
+                    requestData.start_location = startLocation;
+                    console.log(`   Стартовая точка: [${startLocation[0].toFixed(4)}, ${startLocation[1].toFixed(4)}]`);
+                }
+                
+                const response = await fetch('/api/optimize-route', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                console.log('Получен ответ от сервера');
+
+                const data = await response.json();
+                console.log(`   📈 Маршрут: ${data.route ? data.route.length : 0} точек`);
+                currentRoute = data;
+
+                console.log('Отображаем маршрут на карте...');
+                await displayRouteOnMap(data);
+                displayRouteMetrics(data);
+                displayRouteList(data);
+                console.log('Готово!');
+                
+                // Сохраняем маршрут для навигации
+                currentRoute = data;
+                
+                // Показываем кнопку навигации
+                document.getElementById('navButton').style.display = 'inline-block';
+                
+                // Умное уведомление о результате
+                const visitedCount = data.route.length;
+                const skippedCount = clients.length - visitedCount;
+                const totalDistance = (data.total_distance_km || 0).toFixed(1);
+                const totalTime = Math.round(data.total_time_minutes || 0);
+                
+                let resultMessage = `Посещено: ${visitedCount} из ${clients.length}. `;
+                resultMessage += `Дистанция: ${totalDistance} км, Время: ${totalTime} мин.`;
+                
+                if (skippedCount > 0) {
+                    showWarning(
+                        `${resultMessage} Пропущено ${skippedCount} клиентов из-за временных ограничений.`,
+                        'Маршрут построен'
+                    );
+                } else {
+                    showSuccess(
+                        resultMessage,
+                        'Маршрут построен'
+                    );
+                }
+                
+                // Предупреждение о VIP, если они есть в маршруте
+                const vipInRoute = data.route.filter(c => c.is_vip);
+                if (vipInRoute.length > 0) {
+                    showInfo(
+                        `В маршруте ${vipInRoute.length} VIP ${vipInRoute.length === 1 ? 'клиент' : 'клиентов'}. Они приоритетны!`,
+                        'VIP клиенты'
+                    );
+                }
+                
+                // Отправляем статистику на сервер (если пользователь авторизован)
+                await saveRouteStats(visitedCount, parseFloat(totalDistance), totalTime);
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    showError('Превышено время ожидания. Попробуйте ещё раз или уменьшите количество клиентов.', 'Таймаут');
+                } else {
+                    showError('Не удалось построить маршрут: ' + error.message, 'Ошибка');
+                }
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Отображение маршрута на карте
+        async function displayRouteOnMap(routeData) {
+            console.log('displayRouteOnMap:', routeData);
+            
+            // Удаляем предыдущий маршрут
+            if (routePolyline) {
+                map.geoObjects.remove(routePolyline);
+            }
+
+            // Удаляем старые элементы маршрута (линии, стрелки)
+            routeElements.forEach(element => map.geoObjects.remove(element));
+            routeElements = [];
+            
+            // Удаляем старые маркеры (кроме стартовой точки)
+            markers.forEach(marker => {
+                if (!marker.properties || !marker.properties.get('isStartPoint')) {
+                    map.geoObjects.remove(marker);
+                }
+            });
+            markers = markers.filter(m => m.properties && m.properties.get('isStartPoint'));
+
+            if (!routeData.route || routeData.route.length === 0) {
+                console.error('Маршрут пуст!');
+                showError('Маршрут пуст!');
+                return;
+            }
+
+            console.log(`Отображаем ${routeData.route.length} точек`);
+
+            // Добавляем маркеры с номерами
+            routeData.route.forEach((stop, index) => {
+                const placemark = new ymaps.Placemark(
+                    [stop.client.latitude, stop.client.longitude],
+                    {
+                        balloonContent: `
+                            <strong>Остановка ${index + 1}</strong><br>
+                            ${stop.client.address}<br>
+                            ${stop.client.priority === 'VIP' ? '<span style="color: red; font-weight: bold;">VIP клиент</span><br>' : ''}
+                            Прибытие: ${stop.arrival_time}<br>
+                            Отправление: ${stop.departure_time}<br>
+                            Время в пути: ${stop.travel_time_from_previous} мин<br>
+                            Расстояние: ${stop.distance_from_previous.toFixed(1)} км
+                        `,
+                        iconContent: (index + 1).toString()
+                    },
+                    {
+                        preset: stop.client.priority === 'VIP' ? 'islands#redStretchyIcon' : 'islands#greenStretchyIcon'
+                    }
+                );
+
+                map.geoObjects.add(placemark);
+                markers.push(placemark);
+            });
+
+            // Строим реальный маршрут по дорогам через API Яндекс.Карт
+            console.log('🛣️ Строим маршрут...');
+            try {
+                await buildRealRoute(routeData.route);
+                console.log('Маршрут построен');
+            } catch (error) {
+                console.error('Ошибка построения:', error);
+            }
+
+            // Подстраиваем границы карты
+            try {
+                map.setBounds(map.geoObjects.getBounds(), {
+                    checkZoomRange: true,
+                    zoomMargin: 50
+                });
+                console.log('Карта отцентрована');
+            } catch (error) {
+                console.error('Ошибка центрирования:', error);
+            }
+        }
+
+        // Построение реального маршрута по дорогам
+        async function buildRealRoute(route) {
+            if (route.length < 1) return;
+
+            // Если есть стартовая точка, добавляем её в начало
+            const waypoints = startLocation 
+                ? [startLocation, ...route.map(stop => [stop.client.latitude, stop.client.longitude])]
+                : route.map(stop => [stop.client.latitude, stop.client.longitude]);
+            
+            console.log(`Строим маршрут через ${waypoints.length} точек...`);
+            
+            // Пытаемся построить маршрут по дорогам
+            try {
+                console.log('Построение маршрута по дорогам...');
+                
+                const multiRoute = new ymaps.multiRouter.MultiRoute({
+                    referencePoints: waypoints,
+                    params: {
+                        routingMode: 'auto'
+                    }
+                }, {
+                    boundsAutoApply: false,
+                    wayPointVisible: false,
+                    routeActiveStrokeWidth: 7,
+                    routeActiveStrokeColor: '#00FF00',
+                    routeStrokeStyle: 'solid'
+                });
+                
+                // Обработчик успеха
+                multiRoute.model.events.add('requestsuccess', function () {
+                    console.log('Маршрут по дорогам успешно построен!');
+                    map.geoObjects.add(multiRoute);
+                    routeElements.push(multiRoute);
+                });
+                
+                // Обработчик ошибки
+                multiRoute.model.events.add('requesterror', function (error) {
+                    console.log('Не удалось построить маршрут по дорогам. Используйте режим навигации для точного маршрута.');
+                });
+                
+            } catch (error) {
+                console.log('Ошибка MultiRoute API. Используйте режим навигации для точного маршрута.');
+            }
+            
+            console.log('Точки маршрута отображены на карте');
+        }
+        
+        // Простое отображение сегмента (без API)
+        function buildSimpleSegment(pointA, pointB, segmentNumber) {
+            // Расстояние по прямой
+            const R = 6371;
+            const dLat = (pointB[0] - pointA[0]) * Math.PI / 180;
+            const dLon = (pointB[1] - pointA[1]) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                     Math.cos(pointA[0] * Math.PI / 180) * Math.cos(pointB[0] * Math.PI / 180) *
+                     Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c * 1000; // в метрах
+            
+            // Линия маршрута (ярко-зелёная, толстая)
+            const polyline = new ymaps.Polyline([pointA, pointB], {
+                hintContent: `Сегмент ${segmentNumber}: ~${(distance * 1.3 / 1000).toFixed(2)} км`
+            }, {
+                strokeColor: '#00FF00',
+                strokeWidth: 6,
+                strokeOpacity: 1.0,
+                strokeStyle: 'solid'
+            });
+            map.geoObjects.add(polyline);
+            routeElements.push(polyline);
+        }
+
+        // Построение одного сегмента маршрута между двумя точками
+        function buildRouteSegment(pointA, pointB, segmentNumber) {
+            return new Promise((resolve) => {
+                ymaps.route([pointA, pointB], {
+                    mapStateAutoApply: false,
+                    routingMode: 'auto'
+                }).then(function(routeResult) {
+                    // Получаем геометрию маршрута (реальный путь по дорогам)
+                    const route = routeResult.getRoutes().get(0);
+                    const path = route.getPaths().get(0);
+                    
+                    // Получаем все координаты точек вдоль маршрута
+                    const coordinates = path.geometry.getCoordinates();
+                    
+                    console.log(`  ✓ Сегмент ${segmentNumber}: ${coordinates.length} точек вдоль дороги`);
+
+                    // Создаем линию маршрута по всем точкам
+                    const polyline = new ymaps.Polyline(coordinates, {
+                        segmentNumber: segmentNumber,
+                        hintContent: `Сегмент ${segmentNumber}`
+                    }, {
+                        strokeColor: '#00FF00',
+                        strokeWidth: 5,
+                        strokeOpacity: 1.0
+                    });
+
+                    map.geoObjects.add(polyline);
+                    markers.push(polyline);
+
+                    const distance = routeResult.getLength();
+                    const duration = routeResult.getTime();
+
+                    console.log(`    Расстояние: ${(distance / 1000).toFixed(2)} км, время: ${Math.round(duration / 60)} мин`);
+
+                    resolve({
+                        polyline: polyline,
+                        distance: distance,
+                        duration: duration
+                    });
+                }, function(error) {
+                    console.log(`  → Сегмент ${segmentNumber}: визуализация маршрута`);
+                    
+                    // Рассчитываем расстояние
+                    const lat1 = pointA[0] * Math.PI / 180;
+                    const lat2 = pointB[0] * Math.PI / 180;
+                    const dLat = (pointB[0] - pointA[0]) * Math.PI / 180;
+                    const dLon = (pointB[1] - pointA[1]) * Math.PI / 180;
+                    
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                            Math.cos(lat1) * Math.cos(lat2) *
+                            Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    const distance = 6371000 * c; // в метрах
+                    
+                    // Создаем красивую линию маршрута
+                    const polyline = new ymaps.Polyline([pointA, pointB], {
+                        hintContent: `Сегмент ${segmentNumber}: ~${(distance * 1.3 / 1000).toFixed(2)} км`
+                    }, {
+                        strokeColor: '#00FF00',
+                        strokeWidth: 6,
+                        strokeOpacity: 1.0,
+                        strokeStyle: 'solid'
+                    });
+                    
+                    map.geoObjects.add(polyline);
+                    markers.push(polyline);
+                    
+                    // Добавляем красивые стрелки направления (3 штуки на сегмент)
+                    for (let arrowPos = 0.25; arrowPos <= 0.75; arrowPos += 0.25) {
+                        const arrowPoint = [
+                            pointA[0] + (pointB[0] - pointA[0]) * arrowPos,
+                            pointA[1] + (pointB[1] - pointA[1]) * arrowPos
+                        ];
+                        
+                        // Вычисляем угол поворота стрелки
+                        const angle = Math.atan2(pointB[1] - pointA[1], pointB[0] - pointA[0]) * 180 / Math.PI;
+                        
+                        const arrow = new ymaps.Placemark(arrowPoint, {
+                            hintContent: `→ к точке ${segmentNumber + 1}`
+                        }, {
+                            iconLayout: 'default#image',
+                            iconImageHref: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+                                <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 4 L20 12 L12 20 L12 14 L4 14 L4 10 L12 10 Z" 
+                                          fill="#5cb85c" 
+                                          stroke="#fff" 
+                                          stroke-width="1.5"
+                                          transform="rotate(${angle + 90} 12 12)"/>
+                                </svg>
+                            `),
+                            iconImageSize: [16, 16],
+                            iconImageOffset: [-8, -8]
+                        });
+                        
+                        map.geoObjects.add(arrow);
+                        markers.push(arrow);
+                    }
+                    
+                    console.log(`    ├─ Расстояние: ${(distance * 1.3 / 1000).toFixed(2)} км (с учетом дорог)`);
+                    
+                    resolve({
+                        polyline: polyline,
+                        distance: distance * 1.3, // Коэффициент для учета дорог
+                        duration: (distance * 1.3 / 30000) * 3600 // ~30 км/ч
+                    });
+                });
+            });
+        }
+
+        // Отображение метрик
+        function displayRouteMetrics(routeData) {
+            console.log('Отображаем метрики:', routeData);
+            try {
+                document.getElementById('metrics').style.display = 'block';
+                document.getElementById('totalClients').textContent = routeData.total_clients;
+                document.getElementById('totalDistance').textContent = routeData.total_distance + ' км';
+                document.getElementById('totalTime').textContent = Math.floor(routeData.total_time / 60) + ' ч ' + (routeData.total_time % 60) + ' мин';
+                document.getElementById('efficiency').textContent = routeData.efficiency_score + ' клиентов/час';
+                console.log('Метрики обновлены');
+            } catch (error) {
+                console.error('Ошибка обновления метрик:', error);
+            }
+        }
+
+        // Отображение списка остановок
+        function displayRouteList(routeData) {
+            console.log('📋 Отображаем список маршрута');
+            const routeList = document.getElementById('routeList');
+            routeList.innerHTML = '<h3 style="margin-top: 20px; color: #5cb85c;">Маршрут по остановкам</h3>';
+
+            if (!routeData.route) {
+                console.error('routeData.route не определен');
+                return;
+            }
+
+            routeData.route.forEach((stop, index) => {
+                const div = document.createElement('div');
+                div.className = 'route-item' + (stop.client.priority === 'VIP' ? ' route-item-vip' : '');
+                div.innerHTML = `
+                    <div>
+                        <span class="route-number">${index + 1}</span>
+                        <strong>${stop.client.address}</strong>
+                        ${stop.client.priority === 'VIP' ? '<span class="vip-badge">VIP</span>' : ''}
+                    </div>
+                    <div class="route-time">
+${stop.arrival_time} - ${stop.departure_time} 
+                        ${stop.travel_time_from_previous > 0 ? `| ${stop.travel_time_from_previous} мин` : ''}
+                        ${stop.distance_from_previous > 0 ? `| ${stop.distance_from_previous.toFixed(1)} км` : ''}
+                    </div>
+                `;
+                routeList.appendChild(div);
+            });
+        }
+
+        // Очистка маршрута
+        function clearRoute() {
+            clients = [];
+            currentRoute = null;
+            
+            if (routePolyline) {
+                map.geoObjects.remove(routePolyline);
+                routePolyline = null;
+            }
+
+            // Очищаем элементы маршрута (линии, стрелки)
+            routeElements.forEach(element => map.geoObjects.remove(element));
+            routeElements = [];
+            
+            // Очищаем маркеры точек
+            markers.forEach(marker => map.geoObjects.remove(marker));
+            markers = [];
+
+            document.getElementById('metrics').style.display = 'none';
+            document.getElementById('routeList').innerHTML = '';
+            document.getElementById('csvFile').value = '';
+            
+            showSuccess('Маршрут очищен');
+        }
+
+        // Утилиты для отображения сообщений
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        // ==================== СИСТЕМА УВЕДОМЛЕНИЙ ====================
+        
+        let notificationId = 0;
+        
+        function showNotification(type, title, message, duration = 5000) {
+            const container = document.getElementById('notificationContainer');
+            const id = ++notificationId;
+            
+            // Иконки для разных типов
+            const icons = {
+                success: '',
+                error: '',
+                warning: '',
+                info: ''
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.id = `notification-${id}`;
+            notification.style.position = 'relative';
+            
+            notification.innerHTML = `
+                <div class="notification-icon">${icons[type]}</div>
+                <div class="notification-content">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+                <button class="notification-close" onclick="closeNotification(${id})">×</button>
+                ${duration > 0 ? '<div class="notification-progress"></div>' : ''}
+            `;
+            
+            container.appendChild(notification);
+            
+            // Автозакрытие
+            if (duration > 0) {
+                setTimeout(() => closeNotification(id), duration);
+            }
+            
+            return id;
+        }
+        
+        function closeNotification(id) {
+            const notification = document.getElementById(`notification-${id}`);
+            if (notification) {
+                notification.classList.add('closing');
+                setTimeout(() => notification.remove(), 300);
+            }
+        }
+        
+        function showSuccess(message, title = '✨ Успешно') {
+            return showNotification('success', title, message);
+        }
+        
+        function showError(message, title = '🚨 Ошибка') {
+            return showNotification('error', title, message);
+        }
+        
+        function showWarning(message, title = 'Внимание') {
+            return showNotification('warning', title, message);
+        }
+        
+        function showInfo(message, title = 'ℹ️ Информация') {
+            return showNotification('info', title, message);
+        }
+    </script>
+
+    <!-- Футер -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <p class="footer-license">Банк "Центр-инвест" (ПАО)</p>
+                <p>Лицензия Банка России № 2225 от 26.03.2015</p>
+                <p>344000, г. Ростов-на-Дону, пр. Соколова, 62</p>
+            </div>
+            <div>
+                <p class="footer-phone">📞 8 800 200 99 29</p>
+                <p style="color: #666; font-size: 11px; margin-top: 5px;">Звонок по России бесплатный</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
