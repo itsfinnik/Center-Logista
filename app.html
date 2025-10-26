@@ -959,12 +959,12 @@
             <div class="sidebar">
 
                 <div class="control-group">
-                    <label>Загрузка адресов из CSV</label>
+                    <label>Загрузка адресов из файла</label>
                     <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 2px dashed rgba(255,255,255,0.2);">
                         <div class="file-upload">
-                            <input type="file" id="csvFile" accept=".csv">
+                            <input type="file" id="csvFile" accept=".csv,.xlsx,.xls">
                             <label for="csvFile" class="file-upload-label" style="margin-bottom: 10px;">
-                                Выберите CSV файл
+                                Выберите CSV или Excel файл
                             </label>
                         </div>
                         <div id="csvFileInfo" style="display: none; margin-top: 10px; padding: 10px; background: rgba(102, 187, 106, 0.2); border-radius: 6px; border-left: 3px solid #66bb6a;">
@@ -1578,8 +1578,10 @@
             }
 
             // Валидация файла
-            if (!file.name.endsWith('.csv')) {
-                showError('Пожалуйста, выберите CSV файл', 'Неверный формат');
+            const validExtensions = ['.csv', '.xlsx', '.xls'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            if (!validExtensions.includes(fileExtension)) {
+                showError('Пожалуйста, выберите CSV или Excel файл', 'Неверный формат');
                 event.target.value = '';
                 return;
             }

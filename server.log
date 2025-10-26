@@ -1,55 +1,7 @@
-INFO:     Started server process [38632]
+INFO:     Started server process [40460]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-2025-10-26 04:08:41 - route_optimizer - INFO - [REQUEST] GET /
-2025-10-26 04:08:41 - route_optimizer - INFO - [SUCCESS] GET / - 200
-INFO:     127.0.0.1:63662 - "GET / HTTP/1.1" 200 OK
-2025-10-26 04:08:46 - route_optimizer - INFO - [REQUEST] GET /landing.html
-2025-10-26 04:08:46 - route_optimizer - INFO - [SUCCESS] GET /landing.html - 200
-INFO:     127.0.0.1:63667 - "GET /landing.html HTTP/1.1" 200 OK
-2025-10-26 04:08:57 - route_optimizer - INFO - [REQUEST] GET /static/landing.html
-2025-10-26 04:08:57 - route_optimizer - INFO - [SUCCESS] GET /static/landing.html - 404
-INFO:     127.0.0.1:63671 - "GET /static/landing.html HTTP/1.1" 404 Not Found
-2025-10-26 04:08:58 - route_optimizer - INFO - [REQUEST] GET /static/landing.html
-2025-10-26 04:08:58 - route_optimizer - INFO - [SUCCESS] GET /static/landing.html - 404
-INFO:     127.0.0.1:63671 - "GET /static/landing.html HTTP/1.1" 404 Not Found
-2025-10-26 04:09:08 - route_optimizer - INFO - [REQUEST] GET /landing.html
-2025-10-26 04:09:08 - route_optimizer - INFO - [SUCCESS] GET /landing.html - 200
-INFO:     127.0.0.1:63681 - "GET /landing.html HTTP/1.1" 200 OK
-2025-10-26 04:09:09 - route_optimizer - INFO - [REQUEST] GET /logo.png
-2025-10-26 04:09:09 - route_optimizer - INFO - [SUCCESS] GET /logo.png - 200
-INFO:     127.0.0.1:63681 - "GET /logo.png HTTP/1.1" 200 OK
-2025-10-26 04:09:13 - route_optimizer - INFO - [REQUEST] GET /app.html
-2025-10-26 04:09:13 - route_optimizer - INFO - [SUCCESS] GET /app.html - 200
-INFO:     127.0.0.1:63681 - "GET /app.html HTTP/1.1" 200 OK
-2025-10-26 04:09:17 - route_optimizer - INFO - [REQUEST] GET /profile.html
-2025-10-26 04:09:17 - route_optimizer - INFO - [SUCCESS] GET /profile.html - 200
-INFO:     127.0.0.1:63681 - "GET /profile.html HTTP/1.1" 200 OK
-2025-10-26 04:09:17 - route_optimizer - INFO - [REQUEST] GET /api/stats/me
-2025-10-26 04:09:17 - route_optimizer - INFO - [SUCCESS] GET /api/stats/me - 401
-INFO:     127.0.0.1:63681 - "GET /api/stats/me HTTP/1.1" 401 Unauthorized
-2025-10-26 04:09:27 - route_optimizer - INFO - [REQUEST] POST /api/upload-csv
-2025-10-26 04:09:27 - route_optimizer - INFO - === НАЧАЛО ЗАГРУЗКИ CSV ===
-2025-10-26 04:09:27 - route_optimizer - INFO - Request headers: {'host': 'localhost:8000', 'accept': '*/*', 'content-type': 'multipart/form-data; boundary=----WebKitFormBoundaryoVF77o6v5pXIUwCZ', 'origin': 'http://localhost:8000', 'sec-fetch-site': 'same-origin', 'sec-fetch-mode': 'cors', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15', 'referer': 'http://localhost:8000/app.html', 'sec-fetch-dest': 'empty', 'content-length': '5703', 'accept-language': 'ru', 'priority': 'u=3, i', 'accept-encoding': 'gzip, deflate', 'connection': 'keep-alive'}
-2025-10-26 04:09:27 - route_optimizer - INFO - File parameter: UploadFile(filename='Новая таблица - Лист1 (1).csv', size=5486, headers=Headers({'content-disposition': 'form-data; name="file"; filename="Ð\x9dÐ¾Ð²Ð°Ñ\x8f Ñ\x82Ð°Ð±Ð»Ð¸Ñ\x86Ð° - Ð\x9bÐ¸Ñ\x81Ñ\x821 (1).csv"', 'content-type': 'text/csv'}))
-2025-10-26 04:09:27 - route_optimizer - INFO - Получен файл: Новая таблица - Лист1 (1).csv
-2025-10-26 04:09:27 - route_optimizer - INFO - Content type: text/csv
-2025-10-26 04:09:27 - route_optimizer - INFO - Размер файла: 5486 байт
-2025-10-26 04:09:27 - route_optimizer - INFO - CSV колонки: ['№', 'Адрес объекта', 'Географическая широта', 'Географическая долгота', 'Начало рабочего дня', 'Конец рабочего дня', 'Начало обеда', 'Конец обеда', 'Уровень клиента']
-2025-10-26 04:09:27 - route_optimizer - INFO - Строк в CSV: 40
-2025-10-26 04:09:27 - route_optimizer - INFO - Найдена колонка с адресами: Адрес объекта
-2025-10-26 04:09:27 - route_optimizer - INFO - Загружено 40 клиентов
-2025-10-26 04:09:27 - route_optimizer - INFO - [SUCCESS] POST /api/upload-csv - 200
-INFO:     127.0.0.1:63685 - "POST /api/upload-csv HTTP/1.1" 200 OK
-2025-10-26 04:10:06 - route_optimizer - INFO - [REQUEST] POST /api/optimize-route
-2025-10-26 04:10:06 - route_optimizer - INFO - Route optimization started: 15 clients, start 09:15
-2025-10-26 04:10:06 - route_optimizer - INFO - Start location: [47.212732, 39.642869]
-2025-10-26 04:10:06 - route_optimizer - INFO - Starting with VIP client
-2025-10-26 04:10:06 - route_optimizer - INFO - Route built: 15 stops
-2025-10-26 04:10:06 - route_optimizer - INFO - Metrics: 35.2 km, 392 min
-2025-10-26 04:10:06 - route_optimizer - INFO - [SUCCESS] POST /api/optimize-route - 200
-INFO:     127.0.0.1:63698 - "POST /api/optimize-route HTTP/1.1" 200 OK
-2025-10-26 04:10:06 - route_optimizer - INFO - [REQUEST] POST /api/stats/route
-2025-10-26 04:10:06 - route_optimizer - INFO - [SUCCESS] POST /api/stats/route - 401
-INFO:     127.0.0.1:63698 - "POST /api/stats/route HTTP/1.1" 401 Unauthorized
+2025-10-26 13:27:06 - route_optimizer - INFO - [REQUEST] GET /
+2025-10-26 13:27:06 - route_optimizer - INFO - [SUCCESS] GET / - 200
+INFO:     127.0.0.1:53315 - "GET / HTTP/1.1" 200 OK

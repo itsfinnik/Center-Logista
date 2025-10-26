@@ -55,3 +55,13 @@
 2025-10-26 04:10:06 - route_optimizer - INFO - [SUCCESS] POST /api/optimize-route - 200
 2025-10-26 04:10:06 - route_optimizer - INFO - [REQUEST] POST /api/stats/route
 2025-10-26 04:10:06 - route_optimizer - INFO - [SUCCESS] POST /api/stats/route - 401
+2025-10-26 12:41:49 - route_optimizer - INFO - [REQUEST] GET /app.html
+2025-10-26 12:41:49 - route_optimizer - INFO - [SUCCESS] GET /app.html - 200
+2025-10-26 12:41:49 - route_optimizer - INFO - [REQUEST] GET /logo.png
+2025-10-26 12:41:49 - route_optimizer - INFO - [SUCCESS] GET /logo.png - 200
+2025-10-26 12:41:53 - route_optimizer - INFO - [REQUEST] GET /api/all-data
+2025-10-26 12:41:53 - route_optimizer - INFO - Загружаем ВСЕ 100 адресов из CSV для геокодирования
+2025-10-26 12:41:53 - route_optimizer - INFO - Загружено 100 адресов для геокодирования
+2025-10-26 12:41:53 - route_optimizer - INFO - [SUCCESS] GET /api/all-data - 200
+2025-10-26 13:27:06 - route_optimizer - INFO - [REQUEST] GET /
+2025-10-26 13:27:06 - route_optimizer - INFO - [SUCCESS] GET / - 200

@@ -384,7 +384,7 @@ async def logo():
 @app.post("/api/upload-csv")
 async def upload_csv(request: Request, file: Optional[UploadFile] = File(None)):
     try:
-        logger.info(f"=== НАЧАЛО ЗАГРУЗКИ CSV ===")
+        logger.info(f"=== НАЧАЛО ЗАГРУЗКИ ФАЙЛА ===")
         logger.info(f"Request headers: {dict(request.headers)}")
         logger.info(f"File parameter: {file}")
         
@@ -415,16 +415,35 @@ async def upload_csv(request: Request, file: Optional[UploadFile] = File(None)):
                 content={"success": False, "error": "Файл пустой"}
             )
         
-        # Пробуем разные кодировки
-        try:
-            df = pd.read_csv(io.BytesIO(contents), encoding='utf-8')
-        except UnicodeDecodeError:
-            try:
-                df = pd.read_csv(io.BytesIO(contents), encoding='cp1251')
-            except UnicodeDecodeError:
-                df = pd.read_csv(io.BytesIO(contents), encoding='latin1')
+        file_extension = file.filename.lower().split('.')[-1]
+        logger.info(f"Расширение файла: {file_extension}")
         
-        logger.info(f"CSV колонки: {list(df.columns)}")
+        if file_extension == 'xlsx' or file_extension == 'xls':
+            try:
+                df = pd.read_excel(io.BytesIO(contents), engine='openpyxl')
+                logger.info(f"Excel файл успешно прочитан")
+            except Exception as e:
+                logger.error(f"Ошибка чтения Excel: {str(e)}")
+                return JSONResponse(
+                    status_code=400,
+                    content={"success": False, "error": f"Ошибка чтения Excel файла: {str(e)}"}
+                )
+        elif file_extension == 'csv':
+            try:
+                df = pd.read_csv(io.BytesIO(contents), encoding='utf-8')
+            except UnicodeDecodeError:
+                try:
+                    df = pd.read_csv(io.BytesIO(contents), encoding='cp1251')
+                except UnicodeDecodeError:
+                    df = pd.read_csv(io.BytesIO(contents), encoding='latin1')
+            logger.info(f"CSV файл успешно прочитан")
+        else:
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "error": f"Неподдерживаемый формат файла. Используйте CSV или XLSX"}
+            )
+        
+        logger.info(f"Колонки файла: {list(df.columns)}")
         logger.info(f"Строк в CSV: {len(df)}")
         
         # Ищем колонку с адресами (гибкий поиск)
