@@ -796,6 +796,20 @@
             margin-top: 5px;
         }
 
+        .navigation-panel {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            min-width: 400px;
+            max-width: 90vw;
+        }
+
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -819,6 +833,7 @@
 
             .header-right {
                 gap: 10px;
+                flex-wrap: wrap;
             }
 
             .main-content {
@@ -830,6 +845,8 @@
                 max-height: none;
                 border-radius: 0;
                 padding: 20px;
+                min-width: 100%;
+                max-width: 100%;
             }
 
             #map {
@@ -852,6 +869,17 @@
                 padding: 12px;
             }
 
+            .notification {
+                min-width: 280px;
+                max-width: calc(100vw - 40px);
+            }
+
+            .navigation-panel {
+                min-width: 300px;
+                max-width: calc(100vw - 40px);
+                padding: 15px;
+            }
+
             .footer {
                 padding: 20px;
             }
@@ -868,6 +896,10 @@
         }
 
         @media (max-width: 480px) {
+            body {
+                overflow-x: hidden;
+            }
+
             .header {
                 padding: 10px 15px;
             }
@@ -877,17 +909,23 @@
                 max-width: 150px;
             }
 
+            .header-right {
+                gap: 8px;
+            }
+
             .user-btn {
-                padding: 8px 15px;
-                font-size: 13px;
+                padding: 8px 12px;
+                font-size: 12px;
             }
 
             .sidebar {
                 padding: 15px;
+                min-width: 100%;
+                max-width: 100%;
             }
 
             .sidebar h2 {
-                font-size: 20px;
+                font-size: 18px;
             }
 
             #map {
@@ -898,13 +936,33 @@
                 margin-bottom: 15px;
             }
 
+            .input-group input,
+            .input-group select {
+                font-size: 13px;
+                padding: 8px;
+            }
+
             .btn {
                 font-size: 13px;
                 padding: 10px;
             }
 
             .route-stop {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .notification {
+                min-width: auto;
+                max-width: calc(100vw - 30px);
+                padding: 12px 16px;
+            }
+
+            .navigation-panel {
+                min-width: auto;
+                max-width: calc(100vw - 30px);
                 padding: 12px;
+                top: 10px;
             }
 
             .notification-panel {
@@ -1053,7 +1111,7 @@
 
             <div class="map-container">
                 <!-- Навигационная панель -->
-                <div id="navigationPanel" style="display:none; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); min-width: 400px;">
+                <div id="navigationPanel" class="navigation-panel" style="display:none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <h3 style="margin: 0; color: #11998e;">Навигация</h3>
                         <button onclick="stopNavigation()" style="background: #ff4757; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Остановить</button>

@@ -201,11 +201,20 @@
             .header {
                 padding: 15px 20px;
                 flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .bank-logo {
+                margin-bottom: 10px;
             }
 
             .bank-logo img {
                 height: 60px;
                 max-width: 200px;
+            }
+
+            .bank-logo-text {
+                font-size: 16px;
             }
 
             .header-icons {
@@ -217,21 +226,28 @@
                 height: 40px;
             }
 
+            .icon-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+
             .hero {
                 padding: 40px 20px;
             }
 
             .hero-title {
-                font-size: 36px;
+                font-size: 32px;
+                line-height: 1.2;
             }
 
             .hero-description {
-                font-size: 16px;
+                font-size: 15px;
+                max-width: 100%;
             }
 
             .hero-button {
-                font-size: 18px;
-                padding: 14px 30px;
+                font-size: 16px;
+                padding: 14px 28px;
             }
 
             .footer {
@@ -250,13 +266,28 @@
         }
 
         @media (max-width: 480px) {
+            body {
+                overflow-x: hidden;
+            }
+
             .header {
                 padding: 10px 15px;
+                justify-content: center;
+            }
+
+            .bank-logo {
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 10px;
             }
 
             .bank-logo img {
                 height: 50px;
                 max-width: 150px;
+            }
+
+            .bank-logo-text {
+                font-size: 14px;
             }
 
             .header-icons {
@@ -268,27 +299,39 @@
                 height: 35px;
             }
 
+            .icon-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+
             .hero {
                 padding: 30px 15px;
             }
 
             .hero-title {
-                font-size: 28px;
+                font-size: 24px;
                 line-height: 1.2;
             }
 
             .hero-description {
                 font-size: 14px;
+                max-width: 100%;
             }
 
             .hero-button {
-                font-size: 16px;
-                padding: 12px 25px;
+                font-size: 15px;
+                padding: 12px 24px;
+                width: 100%;
+                max-width: 280px;
             }
 
             .footer {
                 padding: 15px;
-                font-size: 11px;
+                font-size: 10px;
+            }
+
+            .footer-content {
+                gap: 10px;
             }
         }
     </style>

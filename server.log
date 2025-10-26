@@ -1,7 +1,7 @@
-INFO:     Started server process [40460]
+INFO:     Started server process [40812]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-2025-10-26 13:27:06 - route_optimizer - INFO - [REQUEST] GET /
-2025-10-26 13:27:06 - route_optimizer - INFO - [SUCCESS] GET / - 200
-INFO:     127.0.0.1:53315 - "GET / HTTP/1.1" 200 OK
+2025-10-26 14:46:58 - route_optimizer - INFO - [REQUEST] GET /
+2025-10-26 14:46:58 - route_optimizer - INFO - [SUCCESS] GET / - 200
+INFO:     127.0.0.1:54090 - "GET / HTTP/1.1" 200 OK
