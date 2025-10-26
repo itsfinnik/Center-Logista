@@ -1,8 +1,3 @@
-"""
-Система интеллектуального планирования выездов для предпринимателей
-Backend на FastAPI
-Production-ready version с логированием и обработкой ошибок
-"""
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -19,7 +14,6 @@ import logging
 import sys
 from logging.handlers import RotatingFileHandler
 
-# Импорт модуля авторизации
 from auth import (
     UserRegister, UserLogin, Token, UserResponse,
     create_user, authenticate_user, get_user_by_id,
@@ -27,9 +21,9 @@ from auth import (
     get_user_stats, update_user_stats
 )
 
-# ==================== КОНФИГУРАЦИЯ ====================
+from ml_model import get_model
+
 class Config:
-    """Конфигурация приложения через переменные окружения"""
     APP_NAME = os.getenv("APP_NAME", "Система планирования маршрутов")
     VERSION = os.getenv("APP_VERSION", "1.0.0")
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"
@@ -42,7 +36,6 @@ config = Config()
 
 # ==================== ЛОГИРОВАНИЕ ====================
 def setup_logging():
-    """Настройка системы логирования для production"""
     log_format = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
@@ -80,7 +73,6 @@ app = FastAPI(
 # Middleware для логирования запросов
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    """Логирование всех HTTP запросов"""
     logger.info(f"[REQUEST] {request.method} {request.url.path}")
     try:
         response = await call_next(request)
@@ -93,7 +85,6 @@ async def log_requests(request: Request, call_next):
 # Обработчик глобальных ошибок
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """Обработка всех необработанных исключений"""
     logger.error(f"[CRITICAL] Unhandled exception: {str(exc)}", exc_info=True)
     return JSONResponse(
         status_code=500,
@@ -150,18 +141,15 @@ class RouteResponse(BaseModel):
 
 # Утилиты для работы со временем
 def time_str_to_minutes(time_str: str) -> int:
-    """Конвертирует время HH:MM в минуты от начала дня"""
     h, m = map(int, time_str.split(':'))
     return h * 60 + m
 
 def minutes_to_time_str(minutes: int) -> str:
-    """Конвертирует минуты от начала дня в HH:MM"""
     h = minutes // 60
     m = minutes % 60
     return f"{h:02d}:{m:02d}"
 
 def is_within_working_hours(arrival_time: int, client: Client) -> bool:
-    """Проверяет, попадает ли визит в рабочее время (не в обед)"""
     work_start = time_str_to_minutes(client.work_start)
     work_end = time_str_to_minutes(client.work_end)
     lunch_start = time_str_to_minutes(client.lunch_start)
@@ -174,7 +162,6 @@ def is_within_working_hours(arrival_time: int, client: Client) -> bool:
     return True
 
 def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Вычисляет расстояние между двумя точками (формула гаверсинуса)"""
     from math import radians, sin, cos, sqrt, atan2
     
     R = 6371  # Радиус Земли в км
@@ -189,10 +176,6 @@ def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     return R * c
 
 def estimate_travel_time(distance_km: float, base_speed: float = 30.0) -> int:
-    """
-    Оценивает время в пути с учетом пробок
-    base_speed: средняя скорость в км/ч (30 км/ч - с учетом городских условий)
-    """
     # Добавляем фактор пробок (вариативность ±20%)
     speed_factor = np.random.uniform(0.8, 1.2)
     effective_speed = base_speed * speed_factor
@@ -203,20 +186,18 @@ def estimate_travel_time(distance_km: float, base_speed: float = 30.0) -> int:
     return max(travel_time_minutes, 5)  # Минимум 5 минут
 
 class RouteOptimizer:
-    """Оптимизатор маршрутов с учетом всех бизнес-ограничений"""
     
     def __init__(self, clients: List[Client], start_time: str, visit_duration: int, start_location: Optional[List[float]] = None):
         self.clients = clients
         self.start_time_minutes = time_str_to_minutes(start_time)
         self.visit_duration = visit_duration
-        self.start_location = start_location  # [latitude, longitude]
+        self.start_location = start_location
+        self.ml_model = get_model()
         
     def calculate_priority_score(self, client: Client) -> float:
-        """Вычисляет приоритет клиента"""
         return 2.0 if client.priority == "VIP" else 1.0
     
     def build_distance_matrix(self) -> np.ndarray:
-        """Строит матрицу расстояний между всеми клиентами"""
         n = len(self.clients)
         matrix = np.zeros((n, n))
         
@@ -232,39 +213,26 @@ class RouteOptimizer:
         return matrix
     
     def optimize_route_greedy(self) -> List[RouteStop]:
-        """
-        Жадный алгоритм с учетом:
-        - Временных окон
-        - Приоритета клиентов
-        - Расстояния
-        - Обеденных перерывов
-        """
         unvisited = self.clients.copy()
         route = []
         current_time = self.start_time_minutes
         last_position = None
         
-        # Определяем точку отсчета для выбора первого клиента
         if self.start_location:
-            # Используем местоположение пользователя
             reference_lat, reference_lon = self.start_location
-            logger.info(f"📍 Используем стартовую точку: [{reference_lat}, {reference_lon}]")
+            logger.info(f"Start location: [{reference_lat}, {reference_lon}]")
         else:
-            # Используем центр всех клиентов
             reference_lat = np.mean([c.latitude for c in unvisited])
             reference_lon = np.mean([c.longitude for c in unvisited])
-            logger.info(f"📍 Используем центр клиентов: [{reference_lat}, {reference_lon}]")
+            logger.info(f"Using clients center: [{reference_lat}, {reference_lon}]")
         
-        # Умный выбор первого клиента с учетом расстояний
-        # Вычисляем расстояния от стартовой точки до всех клиентов
         distances = [(c, calculate_distance(reference_lat, reference_lon, c.latitude, c.longitude)) 
                      for c in unvisited]
-        distances.sort(key=lambda x: x[1])  # Сортируем по расстоянию
+        distances.sort(key=lambda x: x[1])
         
         vip_clients = [c for c in unvisited if c.priority == "VIP"]
         
         if vip_clients:
-            # Находим ближайшего VIP и его расстояние
             closest_vip = min(vip_clients, key=lambda c: calculate_distance(
                 reference_lat, reference_lon, c.latitude, c.longitude
             ))
@@ -272,39 +240,33 @@ class RouteOptimizer:
                 reference_lat, reference_lon, closest_vip.latitude, closest_vip.longitude
             )
             
-            # Считаем сколько обычных клиентов ближе, чем VIP
             closer_regular_clients = [c for c, dist in distances 
                                      if c.priority != "VIP" and dist < vip_distance]
             
-            # Если 2+ обычных клиента ближе, чем VIP - начинаем с ближайшего обычного
             if len(closer_regular_clients) >= 2:
-                first_client = distances[0][0]  # Ближайший клиент (любой)
-                logger.info(f"🎯 Начинаем с ближайшего клиента (есть {len(closer_regular_clients)} обычных ближе VIP)")
+                first_client = distances[0][0]
+                logger.info(f"Starting with nearest client ({len(closer_regular_clients)} regular closer than VIP)")
             else:
                 first_client = closest_vip
-                logger.info(f"⭐ Начинаем с VIP (менее 2 обычных клиентов ближе)")
+                logger.info("Starting with VIP client")
         else:
-            # Нет VIP клиентов - начинаем с ближайшего
             first_client = distances[0][0]
-            logger.info(f"📍 Начинаем с ближайшего клиента (VIP нет)")
+            logger.info("Starting with nearest client (no VIP)")
         
-        max_iterations = len(self.clients) + 5  # Защита от бесконечного цикла
+        max_iterations = len(self.clients) + 5
         iteration = 0
         
-        while unvisited and current_time < 18 * 60 and iteration < max_iterations:  # До 18:00
+        while unvisited and current_time < 18 * 60 and iteration < max_iterations:
             iteration += 1
             if last_position is None:
-                # Первый клиент
                 next_client = first_client
                 travel_time = 0
                 distance = 0.0
             else:
-                # Выбираем следующего клиента по комплексному критерию
                 best_client = None
                 best_score = float('-inf')
                 
                 for client in unvisited:
-                    # Расстояние от текущей позиции
                     dist = calculate_distance(
                         last_position[0], last_position[1],
                         client.latitude, client.longitude
@@ -312,9 +274,7 @@ class RouteOptimizer:
                     travel_time_est = estimate_travel_time(dist)
                     arrival_time = current_time + travel_time_est
                     
-                    # Проверяем временные окна
                     if not is_within_working_hours(arrival_time, client):
-                        # Пытаемся скорректировать время
                         work_start = time_str_to_minutes(client.work_start)
                         lunch_start = time_str_to_minutes(client.lunch_start)
                         lunch_end = time_str_to_minutes(client.lunch_end)
@@ -324,14 +284,23 @@ class RouteOptimizer:
                         elif lunch_start <= arrival_time < lunch_end:
                             arrival_time = lunch_end
                         else:
-                            continue  # Не можем посетить
+                            continue
                     
-                    # Комплексная оценка: приоритет / расстояние
                     priority_score = self.calculate_priority_score(client)
-                    distance_penalty = dist + 0.1  # Избегаем деления на 0
+                    distance_penalty = dist + 0.1
                     time_urgency = 1.0 / (time_str_to_minutes(client.work_end) - arrival_time + 1)
                     
-                    score = (priority_score * 100 / distance_penalty) + time_urgency * 50
+                    current_hour = current_time / 60.0
+                    is_vip = 1 if client.priority == "VIP" else 0
+                    
+                    ml_score = self.ml_model.predict_score(
+                        distance=dist,
+                        time_of_day=current_hour,
+                        is_vip=is_vip,
+                        traffic_factor=1.0
+                    )
+                    
+                    score = (priority_score * 100 / distance_penalty) + time_urgency * 50 + ml_score * 0.5
                     
                     if score > best_score:
                         best_score = score
@@ -341,21 +310,19 @@ class RouteOptimizer:
                         best_arrival = arrival_time
                 
                 if best_client is None:
-                    break  # Не можем посетить больше клиентов
+                    break
                 
                 next_client = best_client
                 travel_time = best_travel_time
                 distance = best_distance
                 current_time = best_arrival
             
-            # Проверяем, не попадаем ли в обед
             lunch_start = time_str_to_minutes(next_client.lunch_start)
             lunch_end = time_str_to_minutes(next_client.lunch_end)
             
             if lunch_start <= current_time < lunch_end:
                 current_time = lunch_end
             
-            # Добавляем остановку
             departure_time = current_time + self.visit_duration
             
             stop = RouteStop(
@@ -367,7 +334,6 @@ class RouteOptimizer:
             )
             route.append(stop)
             
-            # Обновляем состояние
             unvisited.remove(next_client)
             last_position = (next_client.latitude, next_client.longitude)
             current_time = departure_time
@@ -375,12 +341,9 @@ class RouteOptimizer:
         return route
     
     def calculate_route_metrics(self, route: List[RouteStop]) -> dict:
-        """Вычисляет метрики маршрута"""
         total_distance = sum(stop.distance_from_previous for stop in route)
         total_time = sum(stop.travel_time_from_previous for stop in route) + \
                      len(route) * self.visit_duration
-        
-        # Коэффициент эффективности: клиенты/час
         efficiency_score = len(route) / (total_time / 60) if total_time > 0 else 0
         
         return {
@@ -392,42 +355,34 @@ class RouteOptimizer:
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Landing page"""
+    return FileResponse("landing.html")
+
+@app.get("/landing.html")
+async def landing_page():
     return FileResponse("landing.html")
 
 @app.get("/app.html")
 async def app_page():
-    """Main application page"""
     return FileResponse("app.html")
 
 @app.get("/login.html")
 async def login_page():
-    """Login page"""
     return FileResponse("login.html")
 
 @app.get("/register.html")
 async def register_page():
-    """Register page"""
     return FileResponse("register.html")
 
 @app.get("/profile.html")
 async def profile_page():
-    """Profile page"""
     return FileResponse("profile.html")
-
-@app.get("/index.html")
-async def index_redirect():
-    """Redirect from old index.html to root"""
-    return FileResponse("index.html")
 
 @app.get("/logo.png")
 async def logo():
-    """Logo image"""
     return FileResponse("logo.png")
 
 @app.post("/api/upload-csv")
 async def upload_csv(request: Request, file: Optional[UploadFile] = File(None)):
-    """Загрузка CSV файла с адресами"""
     try:
         logger.info(f"=== НАЧАЛО ЗАГРУЗКИ CSV ===")
         logger.info(f"Request headers: {dict(request.headers)}")
@@ -592,17 +547,16 @@ async def upload_csv(request: Request, file: Optional[UploadFile] = File(None)):
 
 @app.post("/api/optimize-route", response_model=RouteResponse)
 async def optimize_route(request: RouteRequest):
-    """Оптимизация маршрута с полной обработкой ошибок"""
     try:
-        logger.info(f"🚗 Начало оптимизации маршрута: {len(request.clients)} клиентов, старт {request.start_time}")
+        logger.info(f"Route optimization started: {len(request.clients)} clients, start {request.start_time}")
         
         # Валидация входных данных
         if len(request.clients) == 0:
-            logger.warning("⚠️ Попытка оптимизации с пустым списком клиентов")
+            logger.warning("Empty clients list")
             raise HTTPException(status_code=400, detail="Список клиентов пуст")
         
         if len(request.clients) > config.MAX_CLIENTS:
-            logger.warning(f"⚠️ Превышен лимит клиентов: {len(request.clients)} > {config.MAX_CLIENTS}")
+            logger.warning(f"Clients limit exceeded: {len(request.clients)} > {config.MAX_CLIENTS}")
             raise HTTPException(
                 status_code=400,
                 detail=f"Слишком много клиентов. Максимум: {config.MAX_CLIENTS}"
@@ -615,13 +569,11 @@ async def optimize_route(request: RouteRequest):
             start_location=request.start_location
         )
         
-        # Строим маршрут
         route = optimizer.optimize_route_greedy()
-        logger.info(f"✅ Маршрут построен: {len(route)} точек")
+        logger.info(f"Route built: {len(route)} stops")
         
-        # Вычисляем метрики
         metrics = optimizer.calculate_route_metrics(route)
-        logger.info(f"📊 Метрики: {metrics['total_distance']:.1f} км, {metrics['total_time']} мин")
+        logger.info(f"Metrics: {metrics['total_distance']:.1f} km, {metrics['total_time']} min")
         
         return RouteResponse(
             route=route,
@@ -630,10 +582,10 @@ async def optimize_route(request: RouteRequest):
     except HTTPException:
         raise
     except ValueError as e:
-        logger.error(f"❌ Ошибка валидации: {str(e)}")
+        logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Некорректные данные: {str(e)}")
     except Exception as e:
-        logger.error(f"❌ Ошибка оптимизации: {str(e)}", exc_info=True)
+        logger.error(f"Optimization error: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Не удалось построить маршрут: {str(e)}" if config.DEBUG else "Ошибка построения маршрута"
@@ -641,19 +593,18 @@ async def optimize_route(request: RouteRequest):
 
 @app.get("/api/test-data")
 async def get_test_data():
-    """Возвращает случайные 15 адресов из всей базы (100 точек)"""
     try:
         csv_path = os.path.join(os.path.dirname(__file__), config.CSV_DATA_PATH)
         
         if not os.path.exists(csv_path):
-            logger.error(f"❌ CSV файл не найден: {csv_path}")
+            logger.error(f"CSV файл не найден: {csv_path}")
             raise HTTPException(status_code=500, detail="Файл с данными не найден")
         
         df = pd.read_csv(csv_path)
-        logger.info(f"📊 Загружено {len(df)} адресов из CSV")
+        logger.info(f"Загружено {len(df)} адресов из CSV")
         
         if len(df) == 0:
-            logger.warning("⚠️ CSV файл пуст")
+            logger.warning("CSV файл пуст")
             raise HTTPException(status_code=500, detail="Нет доступных адресов")
         
         # Выбираем случайные 15 точек из всех доступных
@@ -676,39 +627,38 @@ async def get_test_data():
                 )
                 clients.append(client)
             except Exception as e:
-                logger.warning(f"⚠️ Ошибка парсинга клиента #{idx + 1}: {str(e)}")
+                logger.warning(f"Ошибка парсинга клиента #{idx + 1}: {str(e)}")
                 continue
         
         if len(clients) == 0:
-            logger.error("❌ Не удалось загрузить ни одного клиента")
+            logger.error("Не удалось загрузить ни одного клиента")
             raise HTTPException(status_code=500, detail="Ошибка обработки данных")
         
-        logger.info(f"✅ Загружено {len(clients)} новых случайных адресов из {len(df)} доступных")
+        logger.info(f"Загружено {len(clients)} новых случайных адресов из {len(df)} доступных")
         logger.debug(f"   Первые адреса: {', '.join([c.address[:30] + '...' for c in clients[:3]])}")
         
         return {"success": True, "clients": [c.model_dump() for c in clients], "total_available": len(df)}
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Ошибка загрузки тестовых данных: {str(e)}", exc_info=True)
+        logger.error(f"Ошибка загрузки тестовых данных: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Ошибка загрузки данных: {str(e)}")
 
 
 @app.get("/api/all-data")
 async def get_all_data():
-    """Возвращает ВСЕ 100 адресов для геокодирования"""
     try:
         csv_path = os.path.join(os.path.dirname(__file__), config.CSV_DATA_PATH)
         
         if not os.path.exists(csv_path):
-            logger.error(f"❌ CSV файл не найден: {csv_path}")
+            logger.error(f"CSV файл не найден: {csv_path}")
             raise HTTPException(status_code=500, detail="Файл с данными не найден")
         
         df = pd.read_csv(csv_path)
-        logger.info(f"📊 Загружаем ВСЕ {len(df)} адресов из CSV для геокодирования")
+        logger.info(f"Загружаем ВСЕ {len(df)} адресов из CSV для геокодирования")
         
         if len(df) == 0:
-            logger.warning("⚠️ CSV файл пуст")
+            logger.warning("CSV файл пуст")
             raise HTTPException(status_code=500, detail="Нет доступных адресов")
         
         clients = []
@@ -727,34 +677,33 @@ async def get_all_data():
                 )
                 clients.append(client)
             except Exception as e:
-                logger.warning(f"⚠️ Ошибка парсинга клиента #{idx + 1}: {str(e)}")
+                logger.warning(f"Ошибка парсинга клиента #{idx + 1}: {str(e)}")
                 continue
         
         if len(clients) == 0:
-            logger.error("❌ Не удалось загрузить ни одного клиента")
+            logger.error("Не удалось загрузить ни одного клиента")
             raise HTTPException(status_code=500, detail="Ошибка обработки данных")
         
-        logger.info(f"✅ Загружено {len(clients)} адресов для геокодирования")
+        logger.info(f"Загружено {len(clients)} адресов для геокодирования")
         
         return {"success": True, "clients": [c.model_dump() for c in clients], "total": len(clients)}
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Ошибка загрузки всех данных: {str(e)}", exc_info=True)
+        logger.error(f"Ошибка загрузки всех данных: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Ошибка загрузки данных: {str(e)}")
 
 # ==================== AUTH ENDPOINTS ====================
 
 @app.post("/api/auth/register", response_model=dict)
 async def register(user: UserRegister):
-    """Регистрация нового пользователя"""
     try:
-        logger.info(f"📝 Попытка регистрации: {user.email}")
+        logger.info(f"Попытка регистрации: {user.email}")
         
         new_user = create_user(user.email, user.phone, user.password)
         
         if not new_user:
-            logger.warning(f"⚠️ Пользователь с email {user.email} или телефоном {user.phone} уже существует")
+            logger.warning(f"Пользователь с email {user.email} или телефоном {user.phone} уже существует")
             raise HTTPException(
                 status_code=400,
                 detail="Пользователь с таким email или телефоном уже существует"
@@ -763,7 +712,7 @@ async def register(user: UserRegister):
         # Создаем токен
         access_token = create_access_token({"sub": str(new_user.id)})
         
-        logger.info(f"✅ Пользователь зарегистрирован: {new_user.email} (ID: {new_user.id})")
+        logger.info(f"Пользователь зарегистрирован: {new_user.email} (ID: {new_user.id})")
         
         return {
             "success": True,
@@ -775,23 +724,22 @@ async def register(user: UserRegister):
     except HTTPException:
         raise
     except ValidationError as e:
-        logger.error(f"❌ Ошибка валидации при регистрации: {str(e)}")
+        logger.error(f"Ошибка валидации при регистрации: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"❌ Ошибка регистрации: {str(e)}", exc_info=True)
+        logger.error(f"Ошибка регистрации: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Ошибка сервера при регистрации")
 
 
 @app.post("/api/auth/login", response_model=dict)
 async def login(user: UserLogin):
-    """Авторизация пользователя"""
     try:
-        logger.info(f"🔐 Попытка входа: {user.login}")
+        logger.info(f"Попытка входа: {user.login}")
         
         authenticated_user = authenticate_user(user.login, user.password)
         
         if not authenticated_user:
-            logger.warning(f"⚠️ Неудачная попытка входа: {user.login}")
+            logger.warning(f"Неудачная попытка входа: {user.login}")
             raise HTTPException(
                 status_code=401,
                 detail="Неверный email/телефон или пароль"
@@ -800,7 +748,7 @@ async def login(user: UserLogin):
         # Создаем токен
         access_token = create_access_token({"sub": str(authenticated_user.id)})
         
-        logger.info(f"✅ Пользователь вошел: {authenticated_user.email} (ID: {authenticated_user.id})")
+        logger.info(f"Пользователь вошел: {authenticated_user.email} (ID: {authenticated_user.id})")
         
         return {
             "success": True,
@@ -812,13 +760,12 @@ async def login(user: UserLogin):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Ошибка авторизации: {str(e)}", exc_info=True)
+        logger.error(f"Ошибка авторизации: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Ошибка сервера при авторизации")
 
 
 @app.get("/api/auth/me", response_model=dict)
 async def get_current_user(authorization: Optional[str] = Header(None)):
-    """Получение текущего пользователя по токену"""
     try:
         if not authorization or not authorization.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Требуется авторизация")
@@ -842,7 +789,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Ошибка получения пользователя: {str(e)}", exc_info=True)
+        logger.error(f"Ошибка получения пользователя: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Ошибка сервера")
 
 
@@ -850,7 +797,6 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
 
 @app.get("/api/stats/me", response_model=dict)
 async def get_my_stats(authorization: Optional[str] = Header(None)):
-    """Получение статистики текущего пользователя"""
     try:
         if not authorization or not authorization.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Требуется авторизация")
@@ -864,7 +810,7 @@ async def get_my_stats(authorization: Optional[str] = Header(None)):
         user_id = int(payload.get("sub"))
         stats = get_user_stats(user_id)
         
-        logger.info(f"📊 Статистика запрошена для пользователя ID: {user_id}")
+        logger.info(f"Статистика запрошена для пользователя ID: {user_id}")
         
         return {
             "success": True,
@@ -873,12 +819,11 @@ async def get_my_stats(authorization: Optional[str] = Header(None)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Ошибка получения статистики: {str(e)}", exc_info=True)
+        logger.error(f"Ошибка получения статистики: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Ошибка сервера")
 
 
 class RouteStats(BaseModel):
-    """Модель для сохранения статистики маршрута"""
     clients_count: int
     distance: float
     time: int
@@ -886,7 +831,6 @@ class RouteStats(BaseModel):
 
 @app.post("/api/stats/route", response_model=dict)
 async def save_route_stats(stats: RouteStats, authorization: Optional[str] = Header(None)):
-    """Сохранение статистики построенного маршрута"""
     try:
         if not authorization or not authorization.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Требуется авторизация")
@@ -902,7 +846,7 @@ async def save_route_stats(stats: RouteStats, authorization: Optional[str] = Hea
         # Обновляем статистику
         update_user_stats(user_id, stats.clients_count, stats.distance, stats.time)
         
-        logger.info(f"✅ Статистика обновлена для пользователя ID: {user_id} | +{stats.clients_count} клиентов, +{stats.distance:.1f} км")
+        logger.info(f"Статистика обновлена для пользователя ID: {user_id} | +{stats.clients_count} клиентов, +{stats.distance:.1f} км")
         
         return {
             "success": True,
@@ -911,7 +855,7 @@ async def save_route_stats(stats: RouteStats, authorization: Optional[str] = Hea
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Ошибка сохранения статистики: {str(e)}", exc_info=True)
+        logger.error(f"Ошибка сохранения статистики: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Ошибка сервера")
 
 

@@ -1,6 +1,3 @@
-"""
-Модуль авторизации и аутентификации пользователей
-"""
 import sqlite3
 import hashlib
 import secrets
@@ -10,14 +7,11 @@ from typing import Optional, Dict
 from pydantic import BaseModel, EmailStr, validator
 import re
 
-# Секретный ключ для JWT (в продакшене должен быть в переменных окружения)
 SECRET_KEY = secrets.token_urlsafe(32)
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24 * 60  # 30 дней
+ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24 * 60
 
-# Инициализация базы данных
 def init_db():
-    """Создание таблицы пользователей и статистики"""
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     
@@ -82,31 +76,25 @@ class UserResponse(BaseModel):
     phone: str
     created_at: str
 
-# Функции для работы с паролями
 def hash_password(password: str) -> str:
-    """Хеширование пароля"""
     salt = secrets.token_hex(16)
     pwd_hash = hashlib.sha256((password + salt).encode()).hexdigest()
     return f"{salt}${pwd_hash}"
 
 def verify_password(password: str, password_hash: str) -> bool:
-    """Проверка пароля"""
     try:
         salt, pwd_hash = password_hash.split('$')
         return hashlib.sha256((password + salt).encode()).hexdigest() == pwd_hash
     except:
         return False
 
-# Функции для работы с JWT
 def create_access_token(data: dict) -> str:
-    """Создание JWT токена"""
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def decode_access_token(token: str) -> Optional[Dict]:
-    """Декодирование JWT токена"""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
@@ -115,9 +103,7 @@ def decode_access_token(token: str) -> Optional[Dict]:
     except jwt.InvalidTokenError:
         return None
 
-# Функции для работы с пользователями
 def create_user(email: str, phone: str, password: str) -> Optional[UserResponse]:
-    """Создание нового пользователя"""
     try:
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
@@ -149,11 +135,8 @@ def create_user(email: str, phone: str, password: str) -> Optional[UserResponse]
         return None
 
 def authenticate_user(login: str, password: str) -> Optional[UserResponse]:
-    """Аутентификация пользователя"""
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
-    
-    # Проверяем по email или телефону
     cursor.execute(
         'SELECT id, email, phone, password_hash, created_at FROM users WHERE email = ? OR phone = ?',
         (login, login)
@@ -175,7 +158,6 @@ def authenticate_user(login: str, password: str) -> Optional[UserResponse]:
     )
 
 def get_user_by_id(user_id: int) -> Optional[UserResponse]:
-    """Получение пользователя по ID"""
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     
@@ -192,9 +174,7 @@ def get_user_by_id(user_id: int) -> Optional[UserResponse]:
         )
     return None
 
-# Функции для работы со статистикой
 def get_user_stats(user_id: int) -> Optional[Dict]:
-    """Получение статистики пользователя"""
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     
@@ -223,16 +203,12 @@ def get_user_stats(user_id: int) -> Optional[Dict]:
     }
 
 def update_user_stats(user_id: int, clients_count: int, distance: float, time: int):
-    """Обновление статистики пользователя после построения маршрута"""
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
-    
-    # Проверяем, есть ли запись
     cursor.execute('SELECT user_id FROM user_stats WHERE user_id = ?', (user_id,))
     exists = cursor.fetchone()
     
     if exists:
-        # Обновляем существующую запись
         cursor.execute('''
             UPDATE user_stats 
             SET routes_count = routes_count + 1,
@@ -243,7 +219,6 @@ def update_user_stats(user_id: int, clients_count: int, distance: float, time: i
             WHERE user_id = ?
         ''', (clients_count, distance, time, user_id))
     else:
-        # Создаем новую запись
         cursor.execute('''
             INSERT INTO user_stats (user_id, routes_count, clients_visited, total_distance, total_time, last_route_at)
             VALUES (?, 1, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -252,6 +227,5 @@ def update_user_stats(user_id: int, clients_count: int, distance: float, time: i
     conn.commit()
     conn.close()
 
-# Инициализация БД при импорте
 init_db()
 

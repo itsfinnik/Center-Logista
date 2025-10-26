@@ -1,39 +1,34 @@
-2025-10-26 04:03:00 - route_optimizer - INFO - [REQUEST] GET /
-2025-10-26 04:03:00 - route_optimizer - INFO - [SUCCESS] GET / - 200
-2025-10-26 04:03:32 - route_optimizer - INFO - [REQUEST] GET /
-2025-10-26 04:03:32 - route_optimizer - INFO - [SUCCESS] GET / - 200
-2025-10-26 04:03:38 - route_optimizer - INFO - [REQUEST] GET /static/app.html
-2025-10-26 04:03:38 - route_optimizer - INFO - [SUCCESS] GET /static/app.html - 404
-2025-10-26 04:03:39 - route_optimizer - INFO - [REQUEST] GET /static/app.html
-2025-10-26 04:03:39 - route_optimizer - INFO - [SUCCESS] GET /static/app.html - 404
-2025-10-26 04:03:53 - route_optimizer - INFO - [REQUEST] GET /static/landing.html
-2025-10-26 04:03:53 - route_optimizer - INFO - [SUCCESS] GET /static/landing.html - 404
-2025-10-26 04:04:22 - route_optimizer - INFO - [REQUEST] HEAD /landing.html
-2025-10-26 04:04:22 - route_optimizer - INFO - [SUCCESS] HEAD /landing.html - 404
-2025-10-26 04:07:03 - route_optimizer - INFO - [REQUEST] GET /landing.html
-2025-10-26 04:07:03 - route_optimizer - INFO - [SUCCESS] GET /landing.html - 200
-2025-10-26 04:07:09 - route_optimizer - INFO - [REQUEST] HEAD /
-2025-10-26 04:07:09 - route_optimizer - INFO - [SUCCESS] HEAD / - 405
-2025-10-26 04:07:15 - route_optimizer - INFO - [REQUEST] GET /
-2025-10-26 04:07:15 - route_optimizer - INFO - [SUCCESS] GET / - 200
+INFO:     Started server process [38632]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 2025-10-26 04:08:41 - route_optimizer - INFO - [REQUEST] GET /
 2025-10-26 04:08:41 - route_optimizer - INFO - [SUCCESS] GET / - 200
+INFO:     127.0.0.1:63662 - "GET / HTTP/1.1" 200 OK
 2025-10-26 04:08:46 - route_optimizer - INFO - [REQUEST] GET /landing.html
 2025-10-26 04:08:46 - route_optimizer - INFO - [SUCCESS] GET /landing.html - 200
+INFO:     127.0.0.1:63667 - "GET /landing.html HTTP/1.1" 200 OK
 2025-10-26 04:08:57 - route_optimizer - INFO - [REQUEST] GET /static/landing.html
 2025-10-26 04:08:57 - route_optimizer - INFO - [SUCCESS] GET /static/landing.html - 404
+INFO:     127.0.0.1:63671 - "GET /static/landing.html HTTP/1.1" 404 Not Found
 2025-10-26 04:08:58 - route_optimizer - INFO - [REQUEST] GET /static/landing.html
 2025-10-26 04:08:58 - route_optimizer - INFO - [SUCCESS] GET /static/landing.html - 404
+INFO:     127.0.0.1:63671 - "GET /static/landing.html HTTP/1.1" 404 Not Found
 2025-10-26 04:09:08 - route_optimizer - INFO - [REQUEST] GET /landing.html
 2025-10-26 04:09:08 - route_optimizer - INFO - [SUCCESS] GET /landing.html - 200
+INFO:     127.0.0.1:63681 - "GET /landing.html HTTP/1.1" 200 OK
 2025-10-26 04:09:09 - route_optimizer - INFO - [REQUEST] GET /logo.png
 2025-10-26 04:09:09 - route_optimizer - INFO - [SUCCESS] GET /logo.png - 200
+INFO:     127.0.0.1:63681 - "GET /logo.png HTTP/1.1" 200 OK
 2025-10-26 04:09:13 - route_optimizer - INFO - [REQUEST] GET /app.html
 2025-10-26 04:09:13 - route_optimizer - INFO - [SUCCESS] GET /app.html - 200
+INFO:     127.0.0.1:63681 - "GET /app.html HTTP/1.1" 200 OK
 2025-10-26 04:09:17 - route_optimizer - INFO - [REQUEST] GET /profile.html
 2025-10-26 04:09:17 - route_optimizer - INFO - [SUCCESS] GET /profile.html - 200
+INFO:     127.0.0.1:63681 - "GET /profile.html HTTP/1.1" 200 OK
 2025-10-26 04:09:17 - route_optimizer - INFO - [REQUEST] GET /api/stats/me
 2025-10-26 04:09:17 - route_optimizer - INFO - [SUCCESS] GET /api/stats/me - 401
+INFO:     127.0.0.1:63681 - "GET /api/stats/me HTTP/1.1" 401 Unauthorized
 2025-10-26 04:09:27 - route_optimizer - INFO - [REQUEST] POST /api/upload-csv
 2025-10-26 04:09:27 - route_optimizer - INFO - === НАЧАЛО ЗАГРУЗКИ CSV ===
 2025-10-26 04:09:27 - route_optimizer - INFO - Request headers: {'host': 'localhost:8000', 'accept': '*/*', 'content-type': 'multipart/form-data; boundary=----WebKitFormBoundaryoVF77o6v5pXIUwCZ', 'origin': 'http://localhost:8000', 'sec-fetch-site': 'same-origin', 'sec-fetch-mode': 'cors', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15', 'referer': 'http://localhost:8000/app.html', 'sec-fetch-dest': 'empty', 'content-length': '5703', 'accept-language': 'ru', 'priority': 'u=3, i', 'accept-encoding': 'gzip, deflate', 'connection': 'keep-alive'}
@@ -46,6 +41,7 @@
 2025-10-26 04:09:27 - route_optimizer - INFO - Найдена колонка с адресами: Адрес объекта
 2025-10-26 04:09:27 - route_optimizer - INFO - Загружено 40 клиентов
 2025-10-26 04:09:27 - route_optimizer - INFO - [SUCCESS] POST /api/upload-csv - 200
+INFO:     127.0.0.1:63685 - "POST /api/upload-csv HTTP/1.1" 200 OK
 2025-10-26 04:10:06 - route_optimizer - INFO - [REQUEST] POST /api/optimize-route
 2025-10-26 04:10:06 - route_optimizer - INFO - Route optimization started: 15 clients, start 09:15
 2025-10-26 04:10:06 - route_optimizer - INFO - Start location: [47.212732, 39.642869]
@@ -53,5 +49,7 @@
 2025-10-26 04:10:06 - route_optimizer - INFO - Route built: 15 stops
 2025-10-26 04:10:06 - route_optimizer - INFO - Metrics: 35.2 km, 392 min
 2025-10-26 04:10:06 - route_optimizer - INFO - [SUCCESS] POST /api/optimize-route - 200
+INFO:     127.0.0.1:63698 - "POST /api/optimize-route HTTP/1.1" 200 OK
 2025-10-26 04:10:06 - route_optimizer - INFO - [REQUEST] POST /api/stats/route
 2025-10-26 04:10:06 - route_optimizer - INFO - [SUCCESS] POST /api/stats/route - 401
+INFO:     127.0.0.1:63698 - "POST /api/stats/route HTTP/1.1" 401 Unauthorized
