@@ -1,0 +1,20 @@
+name: route-optimizer
+runtime: python3.9
+
+build:
+  commands:
+    - pip install -r requirements.txt
+
+run:
+  command: uvicorn main:app --host 0.0.0.0 --port $PORT
+
+health_check:
+  path: /
+  interval: 30s
+  timeout: 10s
+
+env:
+  PORT: 8000
+  DEBUG: "false"
+  LOG_LEVEL: INFO
+
